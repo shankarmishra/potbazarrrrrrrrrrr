@@ -1,7 +1,7 @@
 import express from 'express';
 import { getProducts, getProductDetails, submitReview } from '../controllers/productController.js';
-import verifyToken from '../middleware/userMiddleware.js';
-import { requireLogin, requireApiLogin } from '../middleware/userMiddleware.js';
+import verifyToken from '../Middleware/userMiddleware.js';
+import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 import Product from '../models/productModels.js';
 
 const router = express.Router();

@@ -1,0 +1,1655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= product.name %> | Product Details</title>
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #2f855a;
+      --secondary-color: #3182ce;
+      --text-color: #333;
+      --secondary-text-color: #666;
+      --bg-color: #f0f7e7;
+      --card-bg: #ffffff;
+      --error-color: #e53e3e;
+      font-size: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    html {
+      width: 100vw;
+      min-height: 100vh;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: linear-gradient(to bottom, var(--bg-color), #ffffff);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .body-no-scroll {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100vw;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .nav-logo span {
+      margin-left: 8px;
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      background: rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .search-bar {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 200px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-bar:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 5px rgba(47, 133, 90, 0.3);
+      outline: none;
+    }
+
+    .cart-icon-btn,
+    .profile-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 20px;
+    }
+
+    .three-dots {
+      display: none;
+      cursor: pointer;
+      font-size: 2rem;
+      color: #fff;
+      background: none;
+      border: none;
+    }
+
+    /* Category Bar */
+    .all-categories-bar {
+      background: #f7fafc;
+      padding: 1rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      position: sticky;
+      top: 68px;
+      z-index: 900;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .category-bar-item {
+      position: relative;
+      display: inline-block;
+    }
+
+    .category-bar-item > a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .category-bar-item > a:hover {
+      background: #e8f5e9;
+      color: var(--primary-color);
+    }
+
+    .subcategory-list {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: var(--card-bg);
+      border: 1px solid #e0e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      min-width: 200px;
+      padding: 0.5rem 0;
+      z-index: 950;
+    }
+
+    .category-bar-item:hover .subcategory-list {
+      display: block;
+    }
+
+    .subcategory-list a {
+      display: block;
+      color: var(--text-color);
+      text-decoration: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .subcategory-list a:hover {
+      background: #e8f5e9;
+      color: var(--primary-color);
+    }
+
+    /* Profile Dropdown */
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 1px solid #e0e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      min-width: 240px;
+      padding: 1rem;
+      z-index: 1300;
+    }
+
+    .profile-dropdown.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .profile-dropdown p {
+      margin: 0.5rem 0;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .profile-dropdown button {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 0.25rem 0;
+      transition: background 0.3s;
+    }
+
+    .profile-dropdown button:hover {
+      background: #276749;
+    }
+
+    .profile-dropdown button.logout-btn {
+      background: var(--error-color);
+    }
+
+    .profile-dropdown button.logout-btn:hover {
+      background: #b71c1c;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show, .modal[style*="flex"] {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.25rem;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .modal-content button:hover {
+      background: #276749;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    /* Category Sidebar */
+    .category-sidebar {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: -100vw;
+      width: 80vw;
+      max-width: 320px;
+      height: 100vh;
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      color: #fff;
+      z-index: 2000;
+      padding: 2rem 1.2rem;
+      overflow-y: auto;
+      transition: left 0.3s ease;
+    }
+
+    .category-sidebar.show {
+      display: flex;
+      left: 0;
+    }
+
+    .category-sidebar .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .sidebar-category {
+      margin-bottom: 1.2rem;
+    }
+
+    .sidebar-category > a {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories {
+      margin: 0.5rem 0 0 1rem;
+      padding: 0;
+      list-style: disc;
+    }
+
+    .sidebar-subcategories li {
+      margin-bottom: 0.3rem;
+    }
+
+    .sidebar-subcategories a {
+      color: #e0ffe0;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories a:hover {
+      color: #d1e8d1;
+    }
+
+    /* Container */
+    .container {
+      max-width: 1000px;
+      margin: 120px auto 20px;
+      padding: 24px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Product Details */
+    .product-details {
+      display: flex;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .product-image {
+      flex: 1 1 250px;
+      max-width: 400px;
+      min-width: 260px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s;
+    }
+
+    .product-image:hover img {
+      transform: scale(1.05);
+    }
+
+    .product-info {
+      flex: 2 1 220px;
+      min-width: 260px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .product-info h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .product-info p {
+      margin: 10px 0;
+      font-size: 1rem;
+      color: var(--secondary-text-color);
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+      margin: 10px 0;
+      font-weight: 600;
+    }
+
+    .product-stock.stock-red {
+      color: var(--error-color);
+    }
+
+    .product-stock.stock-green {
+      color: var(--primary-color);
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .product-actions button {
+      padding: 10px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      font-weight: 600;
+      flex: 1;
+      text-align: center;
+    }
+
+    .add-to-cart {
+      background: var(--primary-color);
+      color: #fff;
+    }
+
+    .add-to-cart:hover {
+      background: #276749;
+      transform: translateY(-2px);
+    }
+
+    .buy-now {
+      background: var(--secondary-color);
+      color: #fff;
+    }
+
+    .buy-now:hover {
+      background: #1e5a9e;
+      transform: translateY(-2px);
+    }
+
+    .view-more-desc {
+      background: none;
+      border: none;
+      color: var(--secondary-color);
+      cursor: pointer;
+      font-weight: 600;
+      padding: 0;
+      text-align: left;
+    }
+
+    /* Recommended Products */
+    .recommended-products {
+      margin: 32px 0;
+    }
+
+    .recommended-products h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .recommended-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+    }
+
+    .recommended-products .product-item {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .recommended-products .product-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .recommended-products .product-item img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+    }
+
+    .recommended-products .product-item h4 {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+      color: var(--text-color);
+      font-weight: 600;
+    }
+
+    .recommended-products .product-item p {
+      font-size: 1rem;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .recommended-products .view-details {
+      margin-top: auto;
+      padding: 0.5rem 1rem;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.95rem;
+      transition: background 0.3s, transform 0.2s;
+    }
+
+    .recommended-products .view-details:hover {
+      background: #276749;
+      transform: translateY(-2px);
+    }
+
+    /* Review Analysis */
+    .review-analysis {
+      margin: 32px 0 24px 0;
+      padding: 18px;
+      background: #f7fafc;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .review-analysis h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .rating-summary {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .avg-rating {
+      font-size: 2.2rem;
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .rating-summary > span {
+      font-size: 1.1rem;
+      color: var(--secondary-text-color);
+    }
+
+    .rating-breakdown {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .rating-breakdown div {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+    }
+
+    .rating-breakdown progress {
+      width: 100px;
+      height: 8px;
+      border-radius: 4px;
+      background: #e0e8f0;
+    }
+
+    .rating-breakdown progress::-webkit-progress-value {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    .rating-breakdown progress::-moz-progress-bar {
+      background: var(--primary-color);
+      border-radius: 4px;
+    }
+
+    /* Reviews */
+    .reviews {
+      margin: 32px 0;
+    }
+
+    .reviews h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .review-item {
+      margin-bottom: 14px;
+      padding: 12px;
+      background: #f7fafc;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .review-rating {
+      background: var(--primary-color);
+      color: #fff;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+    }
+
+    .review-title {
+      font-weight: bold;
+      color: var(--text-color);
+    }
+
+    .review-text {
+      margin: 5px 0;
+      line-height: 1.4;
+      color: var(--secondary-text-color);
+    }
+
+    .review-images img {
+      width: 48px;
+      height: 48px;
+      object-fit: cover;
+      margin-right: 8px;
+      border-radius: 4px;
+    }
+
+    .review-meta {
+      font-size: 0.9rem;
+      color: var(--secondary-text-color);
+      margin-top: 4px;
+    }
+
+    .review-meta span {
+      margin-right: 1rem;
+    }
+
+    .review-votes {
+      font-size: 0.9rem;
+      color: var(--secondary-text-color);
+    }
+
+    /* Review Form */
+    .review-form {
+      margin: 32px 0;
+    }
+
+    .review-form h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: var(--primary-color);
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .review-form form {
+      background: #f7fafc;
+      padding: 18px;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .review-form input[type="text"],
+    .review-form textarea,
+    .review-form select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #e0e8f0;
+      border-radius: 6px;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .review-form textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+
+    .review-form label {
+      font-size: 0.95rem;
+      color: var(--text-color);
+      margin-bottom: 0.25rem;
+      display: block;
+    }
+
+    .review-form select {
+      width: auto;
+      display: inline-block;
+    }
+
+    .review-form button {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .review-form button:hover {
+      background: #276749;
+    }
+
+    .review-error {
+      color: var(--error-color);
+      background: #fff3f3;
+      border: 1px solid #f8bdbd;
+      border-radius: 6px;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      display: none;
+      text-align: center;
+    }
+
+    /* Popups */
+    #cartPopup,
+    #reviewSuccessPopup {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-color);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      z-index: 1100;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+
+    #reviewSuccessPopup {
+      top: 30%;
+      padding: 24px 32px;
+      font-size: 1.2rem;
+    }
+
+    #cartPopup.show,
+    #reviewSuccessPopup.show {
+      opacity: 1;
+    }
+
+    /* Back to Top Button */
+    #back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
+      font-size: 1.5rem;
+      transition: background 0.3s;
+    }
+
+    #back-to-top:hover {
+      background: #276749;
+    }
+
+    #back-to-top.show {
+      display: block;
+    }
+
+    /* Sticky Cart Icon */
+    .sticky-cart {
+      position: fixed;
+      bottom: 5rem;
+      right: 1rem;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s;
+    }
+
+    .sticky-cart:hover {
+      background: #276749;
+    }
+
+    .sticky-cart::before {
+      content: '🛒';
+      font-size: 24px;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0.75rem 1rem;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .three-dots {
+        display: block !important;
+      }
+
+      .all-categories-bar {
+        display: none !important;
+      }
+
+      .search-bar {
+        width: 150px;
+        font-size: 12px;
+      }
+
+      .container {
+        margin: 110px auto 20px;
+        padding: 1rem;
+      }
+
+      .product-details {
+        flex-direction: column;
+      }
+
+      .product-image img {
+        height: 200px;
+      }
+
+      .product-info h1 {
+        font-size: 1.5rem;
+      }
+
+      .product-info p {
+        font-size: 0.9rem;
+      }
+
+      .product-price {
+        font-size: 1.2rem;
+      }
+
+      .product-actions {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .product-actions button {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .recommended-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .recommended-products .product-item img {
+        height: 140px;
+      }
+
+      .recommended-products .product-item h4 {
+        font-size: 1rem;
+      }
+
+      .recommended-products .product-item p {
+        font-size: 0.9rem;
+      }
+
+      .review-analysis h2,
+      .reviews h2,
+      .review-form h2 {
+        font-size: 1.5rem;
+      }
+
+      .rating-summary {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .review-form form {
+        padding: 1rem;
+      }
+
+      .sticky-cart {
+        display: flex;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 0.5rem 0.75rem;
+      }
+
+      .nav-logo {
+        font-size: 20px;
+      }
+
+      .nav-logo span {
+        font-size: 16px;
+      }
+
+      .search-bar {
+        width: 120px;
+        font-size: 11px;
+      }
+
+      .container {
+        margin: 100px auto 15px;
+      }
+
+      .product-image img {
+        height: 150px;
+      }
+
+      .product-info h1 {
+        font-size: 1.2rem;
+      }
+
+      .product-info p {
+        font-size: 0.85rem;
+      }
+
+      .product-price {
+        font-size: 1.1rem;
+      }
+
+      .recommended-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .recommended-products .product-item img {
+        height: 120px;
+      }
+
+      .recommended-products .product-item h4 {
+        font-size: 0.9rem;
+      }
+
+      .recommended-products .product-item p {
+        font-size: 0.85rem;
+      }
+
+      .review-analysis h2,
+      .reviews h2,
+      .review-form h2 {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .container {
+        max-width: 1200px;
+      }
+
+      .product-info h1 {
+        font-size: 2.5rem;
+      }
+
+      .product-info p {
+        font-size: 1.1rem;
+      }
+
+      .product-price {
+        font-size: 1.8rem;
+      }
+
+      .product-image img {
+        height: 350px;
+      }
+
+      .recommended-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .recommended-products .product-item img {
+        height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <% if (typeof reviewStats === 'undefined') { 
+    reviewStats = { avgRating: 0, totalRatings: 0, totalReviews: 0, ratingCounts: {1:0,2:0,3:0,4:0,5:0} }; 
+  } %>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <button class="three-dots" id="threeDotsBtn" onclick="toggleCategorySidebar()" aria-label="Open Categories">☰</button>
+    <a href="/" class="nav-logo">
+      POTBAZAR<span>🌿</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a>
+      <a href="/#about">About</a>
+      <a href="/policy">Policy</a>
+      <a href="/cart">Cart</a>
+    </div>
+    <div class="nav-icons">
+      <input
+        type="text"
+        placeholder="Search products..."
+        class="search-bar"
+        onkeyup="searchProducts(this.value)"
+        aria-label="Search products"
+      />
+      <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">🛒</button>
+      <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Profile">👤</button>
+    </div>
+  </nav>
+
+  <!-- Profile Dropdown / Login Modal -->
+  <% if (user) { %>
+    <div class="profile-dropdown" id="profileDropdown">
+      <p><strong>Name:</strong> <%= user.name || 'Not provided' %></p>
+      <p><strong>Email:</strong> <%= user.email %></p>
+      <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
+      <p><strong>Address:</strong> <%= user.address || 'Not provided' %></p>
+      <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+    </div>
+  <% } else { %>
+    <div class="modal" id="loginModal" style="display:none;">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+        <h3>Please log in or register</h3>
+        <p>Login or register to proceed with this action.</p>
+        <button onclick="window.location.href='/login?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Login Page">Login</button>
+        <button onclick="window.location.href='/register?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Register Page">Register</button>
+        <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
+          Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
+        </p>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Category Bar -->
+  <div class="all-categories-bar">
+    <% categories = categories || [
+      { name: 'Plants', subcategories: ['Indoor Plants', 'Outdoor Plants', 'Flowering Plants'] },
+      { name: 'Seeds', subcategories: ['Vegetable Seeds', 'Flower Seeds', 'Herb Seeds'] },
+      { name: 'Fertilizers', subcategories: ['Organic', 'Chemical', 'Liquid'] }
+    ]; %>
+    <% categories.forEach(category => { %>
+      <div class="category-bar-item">
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+          <%= category.name %>
+        </a>
+        <% if (category.subcategories && category.subcategories.length > 0) { %>
+          <div class="subcategory-list">
+            <% category.subcategories.forEach(sub => { %>
+              <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name ? sub.name : sub) %>">
+                <%= sub.name ? sub.name : sub %>
+              </a>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Category Sidebar -->
+  <div class="category-sidebar" id="categorySidebar">
+    <button class="close-btn" onclick="toggleCategorySidebar()" aria-label="Close Categories">×</button>
+    <h3 style="margin-bottom:1rem;">Menu</h3>
+    <div class="sidebar-category">
+      <a href="/"><strong>Home</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener"><strong>Blog</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/#about"><strong>About</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/policy"><strong>Policy</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/cart"><strong>Cart</strong></a>
+    </div>
+    <% if (user) { %>
+      <div class="sidebar-category">
+        <a href="/orders"><strong>My Orders</strong></a>
+      </div>
+    <% } %>
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #fff; opacity: 0.2;">
+    <h3 style="margin-bottom:1rem;">Categories</h3>
+    <% categories.forEach(category => { %>
+      <div class="sidebar-category">
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+          <strong><%= category.name %></strong>
+        </a>
+        <% if (category.subcategories && category.subcategories.length > 0) { %>
+          <ul class="sidebar-subcategories">
+            <% category.subcategories.forEach(sub => { %>
+              <li>
+                <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name ? sub.name : sub) %>">
+                  <%= sub.name ? sub.name : sub %>
+                </a>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <div class="container">
+    <!-- Product Details Section -->
+    <div class="product-details">
+      <div class="product-image">
+        <img src="<%= product.images[0] || '/images/default-image.jpg' %>" alt="<%= product.name %>" id="productImage" onerror="this.src='https://source.unsplash.com/400x300/?plant'" loading="lazy">
+      </div>
+      <div class="product-info">
+        <h1 id="productTitle"><%= product.name %></h1>
+        <p id="productDescription" class="product-description">
+          <%= product.description.split(' ').slice(0, 50).join(' ') %>
+          <% if (product.description.split(' ').length > 50) { %>
+            <span id="dots">...</span>
+            <span id="more" style="display:none;"><%= product.description.split(' ').slice(50).join(' ') %></span>
+            <button id="viewMoreBtn" class="view-more-desc">View More</button>
+          <% } %>
+        </p>
+        <p class="product-price">₹<span id="productPrice"><%= product.price.toFixed(2) %></span></p>
+        <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
+          <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
+        </p>
+        <div class="product-actions">
+          <button type="button"
+            class="add-to-cart"
+            onclick="checkLoginBeforeAction(() => addToCart('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
+            <%= product.stock === 0 ? 'disabled style="background:#ccc;color:#888;cursor:not-allowed;"' : '' %>
+            aria-label="Add to Cart">
+            Add to Cart
+          </button>
+          <button type="button"
+            class="buy-now"
+            onclick="checkLoginBeforeAction(() => buyNow('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
+            <%= product.stock === 0 ? 'disabled style="background:#ccc;color:#888;cursor:not-allowed;"' : '' %>
+            aria-label="Buy Now">
+            Buy Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recommended Products Section -->
+    <div class="recommended-products">
+      <h2>Recommended Products</h2>
+      <div class="recommended-grid">
+        <% recommendedProducts.slice(0, 8).forEach(related => { %>
+          <div class="product-item">
+            <img src="<%= related.images[0] || '/images/default-image.jpg' %>" alt="<%= related.name %>" onerror="this.src='https://source.unsplash.com/200x180/?plant'" loading="lazy">
+            <h4><%= related.name %></h4>
+            <p>₹<%= related.price.toFixed(2) %></p>
+            <a href="/api/products/productdetails?id=<%= related._id %>" class="view-details" aria-label="View details for <%= related.name %>">View Details</a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+
+    <!-- Review Analysis Section -->
+    <div class="review-analysis">
+      <h2>Ratings & Reviews</h2>
+      <div class="rating-summary">
+        <span class="avg-rating"><%= reviewStats.avgRating.toFixed(1) %> ★</span>
+        <span><%= reviewStats.totalRatings %> Ratings & <%= reviewStats.totalReviews %> Reviews</span>
+        <div class="rating-breakdown">
+          <% [5,4,3,2,1].forEach(star => { %>
+            <div>
+              <span><%= star %>★</span>
+              <progress value="<%= reviewStats.ratingCounts[star] %>" max="<%= reviewStats.totalRatings %>"></progress>
+              <span><%= reviewStats.ratingCounts[star] %></span>
+            </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer Reviews Section -->
+    <div class="reviews">
+      <h2>Customer Reviews</h2>
+      <div id="customerReviews">
+        <% reviews.slice(0, 10).forEach(review => { %>
+          <div class="review-item">
+            <div class="review-header">
+              <span class="review-rating"><%= review.rating %>★</span>
+              <span class="review-title"><%= review.title %></span>
+            </div>
+            <div class="review-text"><%= review.text %></div>
+            <% if (review.images && review.images.length) { %>
+              <div class="review-images">
+                <% review.images.forEach(img => { %>
+                  <img src="<%= img %>" alt="Review Image" onerror="this.src='https://source.unsplash.com/48x48/?review'" loading="lazy">
+                <% }) %>
+              </div>
+            <% } %>
+            <div class="review-meta">
+              <span class="review-author"><%= review.author %></span>
+              <% if (review.location) { %>
+                <span class="review-location"><%= review.location %></span>
+              <% } %>
+              <span class="review-date"><%= review.date ? new Date(review.date).toLocaleDateString() : '' %></span>
+            </div>
+            <div class="review-votes">
+              <span>👍 <%= review.upvotes || 0 %></span>
+              <span>👎 <%= review.downvotes || 0 %></span>
+            </div>
+            <% if (user && user._id === review.authorId) { %>
+              <button onclick="deleteReview('<%= review._id %>')" class="delete-review-btn" style="background: var(--error-color); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; margin-top: 8px; cursor: pointer;" aria-label="Delete Review">Delete Review</button>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+      <% if (reviews.length > 10) { %>
+        <button id="viewMoreReviews" onclick="loadMoreReviews()" aria-label="View More Reviews">View More</button>
+      <% } %>
+    </div>
+
+    <!-- Review Submission Form -->
+    <div class="review-form">
+      <h2>Submit a Review</h2>
+      <form class="review-form">
+        <input type="hidden" name="productId" value="<%= product._id %>">
+        <label for="review-title">Review Title</label>
+        <input type="text" id="review-title" name="title" placeholder="Review Title" required aria-label="Review Title">
+        <label for="review-text">Your Review</label>
+        <textarea id="review-text" name="text" placeholder="Write your review here..." required aria-label="Review Text"></textarea>
+        <label for="rating">Rating</label>
+        <select id="rating" name="rating" required aria-label="Rating">
+          <option value="">Select</option>
+          <% for(let i=5; i>=1; i--) { %>
+            <option value="<%= i %>"><%= i %> ★</option>
+          <% } %>
+        </select>
+        <div id="reviewError" class="review-error"></div>
+        <button type="submit" aria-label="Submit Review">Submit Review</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cart Popup -->
+  <div id="cartPopup" class="hidden">Product added to cart!</div>
+
+  <!-- Review Success Popup -->
+  <div id="reviewSuccessPopup" class="hidden">Review submitted successfully!</div>
+
+  <!-- Back to Top Button -->
+  <button id="back-to-top" aria-label="Back to Top">↑</button>
+
+  <!-- Sticky Cart Icon -->
+  <div class="sticky-cart" onclick="goToCart()"></div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    let profileVisible = false;
+    let scrollPosition = 0;
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function searchProducts(searchTerm) {
+      // Placeholder for search functionality
+    }
+
+    async function apiRequest(method, url, data, token) {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+        const response = await axios.request({
+          method,
+          url: `${API_BASE_URL}${url}`,
+          data,
+          headers,
+        });
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || { message: 'Request failed' };
+      }
+    }
+
+    function checkLoginBeforeAction(actionCallback) {
+      fetch('/check-login')
+        .then(res => res.json())
+        .then(data => {
+          if (data.loggedIn) {
+            actionCallback();
+          } else {
+            document.getElementById('loginModal').style.display = 'flex';
+          }
+        })
+        .catch(error => {
+          console.error('Error checking login:', error);
+          document.getElementById('loginModal').style.display = 'flex';
+        });
+    }
+
+    function goToCart() {
+      checkLoginBeforeAction(() => {
+        window.location.href = '/cart';
+      });
+    }
+
+    function toggleProfile() {
+      checkLoginBeforeAction(() => {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) {
+          profileVisible = !profileVisible;
+          dropdown.classList.toggle('show', profileVisible);
+        }
+      });
+    }
+
+    async function logout() {
+      try {
+        const token = localStorage.getItem('token');
+        await apiRequest('post', '/api/users/logout', null, token);
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        localStorage.removeItem('token');
+        localStorage.removeItem('cart');
+        profileVisible = false;
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) dropdown.classList.remove('show');
+        window.location.href = '/login';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function toggleCategorySidebar() {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      } else {
+        scrollPosition = window.pageYOffset;
+        sidebar.classList.add('show');
+        document.body.classList.add('body-no-scroll');
+      }
+    }
+
+    function addToCart(productId, productName, productPrice, productImage, productDescription) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          id: productId,
+          name: productName,
+          price: parseFloat(productPrice),
+          image: productImage || '/images/default-image.jpg',
+          description: productDescription,
+          quantity: 1
+        });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      const popup = document.getElementById('cartPopup');
+      popup.classList.remove('hidden');
+      popup.classList.add('show');
+      setTimeout(() => {
+        popup.classList.remove('show');
+        setTimeout(() => popup.classList.add('hidden'), 500);
+      }, 2000);
+    }
+
+    function buyNow(productId, productName, productPrice, productImage, productDescription) {
+      const item = {
+        id: productId,
+        name: productName,
+        price: parseFloat(productPrice),
+        image: productImage || '/images/default-image.jpg',
+        description: productDescription,
+        quantity: 1
+      };
+      localStorage.setItem('cart', JSON.stringify([item]));
+      window.location.href = '/checkout';
+    }
+
+    function deleteReview(reviewId) {
+      checkLoginBeforeAction(async () => {
+        if (confirm('Are you sure you want to delete your review?')) {
+          try {
+            const token = localStorage.getItem('token');
+            const data = await apiRequest('post', '/api/products/delete-review', { reviewId }, token);
+            if (data.success) {
+              location.reload();
+            } else {
+              alert('Could not delete review: ' + (data.message || 'Unknown error'));
+            }
+          } catch (err) {
+            console.error(err);
+            alert('Server error, please try again.');
+          }
+        }
+      });
+    }
+
+    let reviewPage = 1;
+    function loadMoreReviews() {
+      reviewPage++;
+      fetch(`/api/products/reviews?productId=<%= product._id %>&page=${reviewPage}`)
+        .then(res => res.json())
+        .then(newReviews => {
+          const customerReviews = document.getElementById('customerReviews');
+          newReviews.forEach(review => {
+            const reviewItem = document.createElement('div');
+            reviewItem.classList.add('review-item');
+            reviewItem.innerHTML = `
+              <div class="review-header">
+                <span class="review-rating">${review.rating}★</span>
+                <span class="review-title">${review.title}</span>
+              </div>
+              <div class="review-text">${review.text}</div>
+              ${review.images && review.images.length ? `
+                <div class="review-images">
+                  ${review.images.map(img => `<img src="${img}" alt="Review Image" onerror="this.src='https://source.unsplash.com/48x48/?review'" loading="lazy">`).join('')}
+                </div>
+              ` : ''}
+              <div class="review-meta">
+                <span class="review-author">${review.author}</span>
+                ${review.location ? `<span class="review-location">${review.location}</span>` : ''}
+                <span class="review-date">${review.date ? new Date(review.date).toLocaleDateString() : ''}</span>
+              </div>
+              <div class="review-votes">
+                <span>👍 ${review.upvotes || 0}</span>
+                <span>👎 ${review.downvotes || 0}</span>
+              </div>
+              ${'<%= user && user._id %>' === review.authorId ? `
+                <button onclick="deleteReview('${review._id}')" class="delete-review-btn" style="background: var(--error-color); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; margin-top: 8px; cursor: pointer;" aria-label="Delete Review">Delete Review</button>
+              ` : ''}
+            `;
+            customerReviews.appendChild(reviewItem);
+          });
+          if (newReviews.length < 10) {
+            document.getElementById('viewMoreReviews').style.display = 'none';
+          }
+        });
+    }
+
+    document.querySelector('.review-form form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      checkLoginBeforeAction(async () => {
+        const errorDiv = document.getElementById('reviewError');
+        errorDiv.style.display = 'none';
+        errorDiv.textContent = '';
+
+        const productId = this.productId.value;
+        const title = this.title.value.trim();
+        const text = this.text.value.trim();
+        const rating = this.rating.value;
+
+        if (!title || !text || !rating) {
+          errorDiv.textContent = "All fields are required.";
+          errorDiv.style.display = 'block';
+          return;
+        }
+        if (text.length < 10) {
+          errorDiv.textContent = "Review text must be at least 10 characters.";
+          errorDiv.style.display = 'block';
+          return;
+        }
+
+        try {
+          const token = localStorage.getItem('token');
+          const data = await apiRequest('post', '/api/products/submit-review', { productId, title, text, rating }, token);
+          if (data.success) {
+            const popup = document.getElementById('reviewSuccessPopup');
+            popup.classList.remove('hidden');
+            popup.classList.add('show');
+            setTimeout(() => {
+              popup.classList.remove('show');
+              setTimeout(() => {
+                popup.classList.add('hidden');
+                this.reset();
+                window.location.reload();
+              }, 500);
+            }, 2000);
+          } else {
+            errorDiv.textContent = data.message || 'Failed to submit review.';
+            errorDiv.style.display = 'block';
+          }
+        } catch (err) {
+          console.error(err);
+          errorDiv.textContent = 'Server error, please try again.';
+          errorDiv.style.display = 'block';
+        }
+      });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      const btn = document.getElementById('viewMoreBtn');
+      if (btn) {
+        btn.addEventListener('click', function() {
+          document.getElementById('dots').style.display = 'none';
+          document.getElementById('more').style.display = 'inline';
+          btn.style.display = 'none';
+        });
+      }
+    });
+
+    window.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      }
+
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+        dropdown.classList.remove('show');
+        profileVisible = false;
+      }
+
+      const modal = document.getElementById('loginModal');
+      if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+        modal.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const sidebar = document.getElementById('categorySidebar');
+        if (sidebar && sidebar.classList.contains('show')) {
+          sidebar.classList.remove('show');
+          document.body.classList.remove('body-no-scroll');
+          window.scrollTo(0, scrollPosition);
+        }
+        const modal = document.getElementById('loginModal');
+        if (modal && modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+          profileVisible = false;
+        }
+      }
+    });
+
+    window.addEventListener('scroll', function() {
+      const backToTop = document.getElementById('back-to-top');
+      if (window.scrollY > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+
+    document.getElementById('back-to-top').addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

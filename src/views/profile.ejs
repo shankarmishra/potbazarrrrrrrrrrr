@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - POTBAZAR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2f855a;
+            --secondary-color: #3182ce;
+            --text-color: #333;
+            --secondary-text-color: #666;
+            --bg-color: #f0f7e7;
+            --card-bg: #ffffff;
+            --error-color: #e53e3e;
+            font-size: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--bg-color), #ffffff);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            width: 100vw;
+            overflow-x: hidden;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.show,
+        .modal[style*="flex"] {
+            display: flex !important;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            color: var(--text-color);
+            font-size: 1.5rem;
+        }
+
+        .modal-content p {
+            font-size: 1rem;
+            color: var(--secondary-text-color);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 0.25rem;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .modal-content button:hover {
+            background: #276749;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        /* Profile Sections */
+        .container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        #profile-info,
+        #edit-profile {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        #profile-info h2,
+        #edit-profile h2 {
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .profile-details {
+            display: grid;
+            gap: 1rem;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .profile-details p {
+            margin: 0;
+        }
+
+        .profile-details strong {
+            color: var(--primary-color);
+        }
+
+        #edit-profile form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        #edit-profile label {
+            font-size: 1rem;
+            color: var(--text-color);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        #edit-profile input,
+        #edit-profile select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            background: #f7fafc;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        #edit-profile input:focus,
+        #edit-profile select:focus {
+            border-color: var(--primary-color);
+        }
+
+        #edit-profile input.invalid,
+        #edit-profile select.invalid {
+            border-color: var(--error-color);
+        }
+
+        #edit-profile input[readonly] {
+            background: #e2e8f0;
+            cursor: not-allowed;
+        }
+
+        #edit-profile button {
+            padding: 0.75rem;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            max-width: 200px;
+            margin: 1rem auto 0;
+        }
+
+        #edit-profile button:hover {
+            background: #276749;
+        }
+
+        #edit-profile button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--error-color);
+            color: #fff;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .error-message.show {
+            opacity: 1;
+        }
+
+        .loading {
+            margin: 1rem auto;
+            padding: 0.75rem;
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 1rem;
+                padding: 0.5rem;
+            }
+
+            #profile-info,
+            #edit-profile {
+                max-width: 100%;
+                padding: 1rem;
+            }
+
+            .profile-details {
+                font-size: 0.95rem;
+            }
+
+            .modal-content {
+                max-width: 95vw;
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0.5rem;
+            }
+
+            #profile-info,
+            #edit-profile {
+                padding: 0.75rem;
+            }
+
+            .profile-details {
+                font-size: 0.9rem;
+            }
+
+            #edit-profile input,
+            #edit-profile select,
+            #edit-profile button {
+                font-size: 0.85rem;
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login/Register Modal -->
+    <div class="modal" id="loginModal" style="display:none;">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+            <h3>Please log in or register</h3>
+            <p>Login or register to view your profile.</p>
+            <button onclick="window.location.href='/login?redirect=' + encodeURIComponent(window.location.pathname)" aria-label="Go to Login Page">Login</button>
+            <button onclick="window.location.href='/register?redirect=' + encodeURIComponent(window.location.pathname)" aria-label="Go to Register Page">Register</button>
+            <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
+                Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- Profile Content -->
+    <div class="container">
+        <section id="profile-info">
+            <h2>User Profile</h2>
+            <div class="loading" id="profileLoading">Loading profile...</div>
+            <div class="profile-details" id="profileDetails" style="display: none;">
+                <p><strong>Name:</strong> <span id="profileName"></span></p>
+                <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+                <p><strong>Phone:</strong> <span id="profilePhone"></span></p>
+                <p><strong>Address:</strong></p>
+                <p style="margin-left: 1rem;">
+                    <span id="profileStreet"></span><br>
+                    <span id="profileCity"></span>, <span id="profileState"></span> <span id="profilePinCode"></span><br>
+                    <span id="profileCountry"></span><br>
+                    <strong>Landmark:</strong> <span id="profileLandmark"></span><br>
+                    <strong>Type:</strong> <span id="profileAddressType"></span>
+                </p>
+            </div>
+        </section>
+
+        <section id="edit-profile">
+            <h2>Edit Profile</h2>
+            <form id="editProfileForm">
+                <input type="hidden" name="_csrf" id="csrfToken">
+                <div>
+                    <label for="name">Name</label>
+                    <input type="text" id="name" name="name" required aria-label="Name">
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" readonly aria-label="Email">
+                </div>
+                <div>
+                    <label for="phone">Phone</label>
+                    <input type="tel" id="phone" name="phone" required aria-label="Phone">
+                </div>
+                <div>
+                    <label for="street">Street</label>
+                    <input type="text" id="street" name="street" required aria-label="Street">
+                </div>
+                <div>
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" required aria-label="City">
+                </div>
+                <div>
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state" required aria-label="State">
+                </div>
+                <div>
+                    <label for="pinCode">Pin Code</label>
+                    <input type="text" id="pinCode" name="pinCode" required aria-label="Pin Code">
+                </div>
+                <div>
+                    <label for="country">Country</label>
+                    <input type="text" id="country" name="country" required aria-label="Country">
+                </div>
+                <div>
+                    <label for="landmark">Landmark</label>
+                    <input type="text" id="landmark" name="landmark" aria-label="Landmark">
+                </div>
+                <div>
+                    <label for="addressType">Address Type</label>
+                    <select id="addressType" name="addressType" required aria-label="Address Type">
+                        <option value="Home">Home</option>
+                        <option value="Work">Work</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <button type="submit" id="saveProfileBtn" aria-label="Save Profile">Save Changes</button>
+            </form>
+        </section>
+    </div>
+
+    <!-- Error Popup -->
+    <div class="error-message" id="errorPopup"></div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:3000';
+
+        async function apiRequest(method, url, data, token) {
+            try {
+                const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+                const response = await Promise.race([
+                    axios.request({
+                        method,
+                        url: `${API_BASE_URL}${url}`,
+                        data,
+                        headers,
+                    }),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), 10000))
+                ]);
+                return response.data;
+            } catch (error) {
+                console.error(`API request error for ${url}:`, error);
+                throw error.response?.data || { message: error.message || 'Request failed' };
+            }
+        }
+
+        function showError(message) {
+            const popup = document.getElementById('errorPopup');
+            popup.textContent = message;
+            popup.classList.add('show');
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 3000);
+        }
+
+        function checkLoginBeforeAction(actionCallback) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                document.getElementById('loginModal').style.display = 'flex';
+                return;
+            }
+            fetch('/check-login', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.loggedIn) {
+                        actionCallback();
+                    } else {
+                        localStorage.removeItem('token');
+                        document.getElementById('loginModal').style.display = 'flex';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking login:', error);
+                    document.getElementById('loginModal').style.display = 'flex';
+                });
+        }
+
+        function closeModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        async function fetchProfile() {
+            const token = localStorage.getItem('token');
+            const loading = document.getElementById('profileLoading');
+            const details = document.getElementById('profileDetails');
+            loading.style.display = 'block';
+            details.style.display = 'none';
+            try {
+                const headers = token
+  ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+  : { 'Content-Type': 'application/json' };
+
+                const response = await fetch('/api/users/profile', { headers });
+                const data = await response.json();
+                const { name, email, phone, address } = data.user || {};
+                document.getElementById('profileName').textContent = name || 'N/A';
+                document.getElementById('profileEmail').textContent = email || 'N/A';
+                document.getElementById('profilePhone').textContent = phone || 'N/A';
+                document.getElementById('profileStreet').textContent = address?.street || 'N/A';
+                document.getElementById('profileCity').textContent = address?.city || 'N/A';
+                document.getElementById('profileState').textContent = address?.state || 'N/A';
+                document.getElementById('profilePinCode').textContent = address?.pinCode || 'N/A';
+                document.getElementById('profileCountry').textContent = address?.country || 'N/A';
+                document.getElementById('profileLandmark').textContent = address?.landmark || 'N/A';
+                document.getElementById('profileAddressType').textContent = address?.addressType || 'N/A';
+
+                // Populate edit form
+                document.getElementById('name').value = name || '';
+                document.getElementById('email').value = email || '';
+                document.getElementById('phone').value = phone || '';
+                document.getElementById('street').value = address?.street || '';
+                document.getElementById('city').value = address?.city || '';
+                document.getElementById('state').value = address?.state || '';
+                document.getElementById('pinCode').value = address?.pinCode || '';
+                document.getElementById('country').value = address?.country || '';
+                document.getElementById('landmark').value = address?.landmark || '';
+                document.getElementById('addressType').value = address?.addressType || 'Home';
+
+                loading.style.display = 'none';
+                details.style.display = 'grid';
+            } catch (error) {
+                if (error.message && error.message.toLowerCase().includes('token')) {
+                    document.getElementById('loginModal').style.display = 'flex';
+                } else {
+                    showError(error.message || 'Failed to load profile');
+                }
+                loading.style.display = 'none';
+            }
+        }
+
+        async function fetchCsrfToken() {
+            try {
+                const response = await fetch('/api/csrf-token');
+                const data = await response.json();
+                document.getElementById('csrfToken').value = data.csrfToken;
+            } catch (error) {
+                console.error('Error fetching CSRF token:', error);
+            }
+        }
+
+        function validateForm() {
+            const inputs = document.querySelectorAll('#editProfileForm input:not([readonly]), #editProfileForm select');
+            let valid = true;
+            inputs.forEach(input => {
+                if (input.required && !input.value.trim()) {
+                    input.classList.add('invalid');
+                    valid = false;
+                } else {
+                    input.classList.remove('invalid');
+                }
+                if (input.type === 'email' && input.value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.value)) {
+                    input.classList.add('invalid');
+                    valid = false;
+                }
+                if (input.id === 'phone' && input.value && !/^\+?\d{10,15}$/.test(input.value.replace(/\s/g, ''))) {
+                    input.classList.add('invalid');
+                    valid = false;
+                }
+                if (input.id === 'pinCode' && input.value && !/^\d{5,6}$/.test(input.value)) {
+                    input.classList.add('invalid');
+                    valid = false;
+                }
+            });
+            return valid;
+        }
+
+        document.getElementById('editProfileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!validateForm()) {
+                showError('Please fill all required fields correctly.');
+                return;
+            }
+            const token = localStorage.getItem('token');
+            const formData = {
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: {
+                    street: document.getElementById('street').value.trim(),
+                    city: document.getElementById('city').value.trim(),
+                    state: document.getElementById('state').value.trim(),
+                    pinCode: document.getElementById('pinCode').value.trim(),
+                    country: document.getElementById('country').value.trim(),
+                    landmark: document.getElementById('landmark').value.trim(),
+                    addressType: document.getElementById('addressType').value
+                },
+                _csrf: document.getElementById('csrfToken').value
+            };
+            const saveBtn = document.getElementById('saveProfileBtn');
+            saveBtn.disabled = true;
+            try {
+                await apiRequest('post', '/api/users/profile', formData, token);
+                await fetchProfile();
+                showError('Profile updated successfully!');
+            } catch (error) {
+                showError(error.message || 'Failed to update profile');
+            } finally {
+                saveBtn.disabled = false;
+            }
+        });
+
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('loginModal');
+            if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+                modal.style.display = 'none';
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('loginModal');
+                if (modal && modal.style.display === 'flex') {
+                    modal.style.display = 'none';
+                }
+            }
+        });
+
+        // Initialize page
+        checkLoginBeforeAction(() => {
+            fetchCsrfToken();
+            fetchProfile();
+        });
+    </script>
+</body>
+</html>

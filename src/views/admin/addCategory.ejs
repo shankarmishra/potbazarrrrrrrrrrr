@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Add Category</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0E0E0E;
+      --card-color: #1C1C1C;
+      --accent-color: #DC2040;
+      --text-color: #FFFFFF;
+      --text-secondary: #FFFFFFCC;
+      --input-bg: #2E2E2E;
+      --border-color: #444;
+      --error-color: #f44336;
+      --secondary-bg: #141414;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      background: var(--card-color);
+      padding: 2rem;
+      border-radius: 12px;
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.7rem;
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #B71E35;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .category-table-container {
+      max-width: 900px;
+      margin: 2rem auto 5rem auto;
+      background: var(--card-color);
+      border-radius: 12px;
+      padding: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 0.5rem;
+      text-align: left;
+    }
+
+    th {
+      background: var(--accent-color);
+      color: #fff;
+    }
+
+    td {
+      background: var(--card-color);
+    }
+
+    tr:nth-child(even) td {
+      background: #2E2E2E;
+    }
+
+    td img {
+      max-width: 60px;
+      border-radius: 5px;
+    }
+
+    h2, h3 {
+      color: var(--text-color);
+      text-align: center;
+    }
+
+    @media (max-width: 600px) {
+      .form-container, .category-table-container {
+        padding: 1rem;
+        margin: 1rem auto;
+      }
+      table, th, td {
+        font-size: 0.95rem;
+      }
+      th, td {
+        padding: 0.3rem;
+      }
+    }
+
+    footer {
+      background: var(--secondary-bg);
+      color: #fff;
+      text-align: center;
+      padding: 1rem 0;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      font-size: 1rem;
+      z-index: 100;
+    }
+
+    footer span {
+      color: var(--accent-color);
+    }
+
+    @media (max-width: 480px) {
+      footer {
+        font-size: 0.95rem;
+        padding: 0.7rem 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar Include -->
+  <%- include('../components/Navbar') %>
+
+  <div class="form-container">
+    <h2>Add Category</h2>
+    <form action="/api/category/add" method="POST" enctype="multipart/form-data">
+      <label>Name</label>
+      <input type="text" name="name" required>
+      <label>Description</label>
+      <textarea name="description" required></textarea>
+      <label>Image</label>
+      <input type="file" name="image_file" accept="image/*" required>
+      <button type="submit">Add Category</button>
+    </form>
+    <% if (error) { %>
+      <div class="msg" style="color: var(--error-color);"><%= error %></div>
+    <% } %>
+    <% if (success) { %>
+      <div class="msg" style="color: var(--accent-color);"><%= success %></div>
+    <% } %>
+  </div>
+
+  <!-- Category Table -->
+  <div class="category-table-container">
+    <h3>All Categories</h3>
+    <table>
+      <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Image</th>
+        <th>Action</th>
+      </tr>
+      <% if (categories && categories.length) { %>
+        <% categories.forEach(cat => { %>
+          <tr>
+            <td><%= cat.name %></td>
+            <td><%= cat.description %></td>
+            <td>
+              <% if (cat.image_uri) { %>
+                <img src="<%= cat.image_uri %>" alt="img">
+              <% } %>
+            </td>
+            <td>
+              <form action="/api/category/delete/<%= cat._id %>" method="POST" style="display:inline;">
+                <button type="submit" onclick="return confirm('Are you sure you want to delete this category?');" style="background: var(--error-color); color: #fff; border: none; padding: 0.3rem 0.7rem; border-radius: 4px; cursor: pointer; transition: background 0.3s ease;">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      <% } else { %>
+        <tr><td colspan="4" style="text-align:center;">No categories found.</td></tr>
+      <% } %>
+    </table>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    © <span>GreenGarden</span> Admin Panel <%= new Date().getFullYear() %>. All rights reserved.
+  </footer>
+</body>
+</html>

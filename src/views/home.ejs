@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PLANTO - Home</title>
+  <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #2f855a;
+      --secondary-color: #3182ce;
+      --text-color: #333;
+      --secondary-text-color: #666;
+      --bg-color: #f0f7e7;
+      --card-bg: #ffffff;
+      --error-color: #e53e3e;
+      font-size: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    html {
+      width: 100vw;
+      min-height: 100vh;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    body {
+      background: linear-gradient(to bottom, var(--bg-color), #ffffff);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .body-no-scroll {
+      overflow: hidden !important;
+      position: fixed !important;
+      width: 100vw;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      width: 32px;
+      height: 32px;
+    }
+
+    .nav-logo span {
+      margin-left: 8px;
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      background: rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .search-bar {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 200px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-bar:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 5px rgba(47, 133, 90, 0.3);
+      outline: none;
+    }
+
+    .cart-icon-btn,
+    .profile-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      font-size: 20px;
+    }
+
+    .three-dots {
+      display: none;
+      cursor: pointer;
+      font-size: 2rem;
+      color: #fff;
+      background: none;
+      border: none;
+    }
+
+    /* Category Bar */
+    .category-bar {
+      background: #f7fafc;
+      padding: 1rem 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      justify-content: center;
+      position: sticky;
+      top: 68px;
+      z-index: 900;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .category-bar-item {
+      position: relative;
+      display: inline-block;
+    }
+
+    .category-bar-item > a {
+      color: var(--text-color);
+      text-decoration: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .category-bar-item > a:hover {
+      background: #e8f5e9;
+      color: var(--primary-color);
+    }
+
+    .category-bar-subcategories {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: var(--card-bg);
+      border: 1px solid #e0e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      min-width: 200px;
+      padding: 0.5rem 0;
+      z-index: 950;
+    }
+
+    .category-bar-item:hover .category-bar-subcategories {
+      display: block;
+    }
+
+    .category-bar-subcategories a {
+      display: block;
+      color: var(--text-color);
+      text-decoration: none;
+      padding: 8px 16px;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .category-bar-subcategories a:hover {
+      background: #e8f5e9;
+      color: var(--primary-color);
+    }
+
+    /* Profile Dropdown */
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 1px solid #e0e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      min-width: 240px;
+      padding: 1rem;
+      z-index: 1300;
+    }
+
+    .profile-dropdown.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .profile-dropdown p {
+      margin: 0.5rem 0;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .profile-dropdown button {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 0.25rem 0;
+      transition: background 0.3s;
+    }
+
+    .profile-dropdown button:hover {
+      background: #276749;
+    }
+
+    .profile-dropdown button.logout-btn {
+      background: var(--error-color);
+    }
+
+    .profile-dropdown button.logout-btn:hover {
+      background: #b71c1c;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show, .modal[style*="flex"] {
+      display: flex !important;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.25rem;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .modal-content button:hover {
+      background: #276749;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    /* Category Sidebar */
+    .category-sidebar {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: -100vw;
+      width: 80vw;
+      max-width: 320px;
+      height: 100vh;
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      color: #fff;
+      z-index: 2000;
+      padding: 2rem 1.2rem;
+      overflow-y: auto;
+      transition: left 0.3s ease;
+    }
+
+    .category-sidebar.show {
+      display: flex;
+      left: 0;
+    }
+
+    .category-sidebar .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .sidebar-category {
+      margin-bottom: 1.2rem;
+    }
+
+    .sidebar-category > a {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories {
+      margin: 0.5rem 0 0 1rem;
+      padding: 0;
+      list-style: disc;
+    }
+
+    .sidebar-subcategories li {
+      margin-bottom: 0.3rem;
+    }
+
+    .sidebar-subcategories a {
+      color: #e0ffe0;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories a:hover {
+      color: #d1e8d1;
+    }
+
+    /* Hero Section */
+    .hero-banner {
+      display: flex;
+      margin: 20px auto;
+      max-width: 1000px;
+      width: 100%;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .hero-left {
+      width: 50%;
+      background-color: #276749;
+      padding: 40px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-left h1 {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+
+    .hero-left h1 span {
+      margin-left: 10px;
+      font-size: 30px;
+    }
+
+    .hero-left p {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+
+    .hero-right {
+      width: 50%;
+      background: var(--card-bg);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero-slider {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      overflow: hidden;
+    }
+
+    .hero-slider .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+    }
+
+    .hero-slider .slide.active {
+      opacity: 1;
+    }
+
+    .hero-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .hero-nav {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+    }
+
+    .hero-nav-dot {
+      width: 10px;
+      height: 10px;
+      background: #ccc;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .hero-nav-dot.active {
+      background: var(--primary-color);
+    }
+
+    /* Category Highlight Section */
+    .category-highlight {
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+
+    .category-highlight h2 {
+      color: var(--primary-color);
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .category-highlight-text {
+      font-size: 1.5rem;
+      color: var(--text-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .category-highlight-bar {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 1rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .category-highlight-link {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 1rem;
+      text-decoration: none;
+      transition: background 0.3s;
+      text-align: center;
+      color: var(--text-color);
+    }
+
+    .category-highlight-link:hover {
+      background: #e8f5e9;
+    }
+
+    .category-highlight-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin: 0 auto 0.5rem;
+    }
+
+    .category-highlight-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    /* Product Section */
+    .category-box,
+    .all-products-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .product-item {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.3s;
+    }
+
+    .product-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .product-images {
+      position: relative;
+      width: 100%;
+      height: 180px;
+      overflow: hidden;
+      border-radius: 8px;
+    }
+
+    .product-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      position: absolute;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .product-slider img.active {
+      opacity: 1;
+    }
+
+    .product-nav {
+      position: absolute;
+      top: 50%;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .product-item:hover .product-nav {
+      opacity: 1;
+    }
+
+    .product-nav button {
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      border: none;
+      padding: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .product-item h4 {
+      font-size: 1.1rem;
+      margin: 0.5rem 0;
+      color: var(--text-color);
+      font-weight: 600;
+    }
+
+    .product-item p {
+      font-size: 1rem;
+      color: var(--primary-color);
+      font-weight: 600;
+    }
+
+    .product-category {
+      font-size: 0.85rem;
+      color: var(--secondary-text-color);
+      margin: 0.25rem 0;
+    }
+
+    .product-stock.stock-red {
+      color: var(--error-color);
+      font-size: 0.9rem;
+    }
+
+    .product-stock.stock-green {
+      color: var(--primary-color);
+      font-size: 0.9rem;
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      margin-top: 0.75rem;
+    }
+
+    .product-actions a,
+    .product-actions button {
+      flex: 1;
+      padding: 0.5rem;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      text-align: center;
+      font-size: 0.95rem;
+      transition: background 0.3s;
+      border: none;
+      cursor: pointer;
+    }
+
+    .product-actions a:hover,
+    .product-actions button:hover {
+      background: #276749;
+    }
+
+    .product-actions a[style*="pointer-events:none"],
+    .product-actions button:disabled {
+      background: #ccc !important;
+      color: #888 !important;
+      cursor: not-allowed !important;
+    }
+
+    /* About Section */
+    #about {
+      padding: 4rem 1rem;
+      background: linear-gradient(135deg, #f0f7e7, #ffffff);
+    }
+
+    .about-content {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .about-text h2 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .about-text p {
+      font-size: 1rem;
+      color: var(--secondary-text-color);
+      margin-bottom: 1rem;
+    }
+
+    .contact-info h3 {
+      font-size: 1.5rem;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .social-links a {
+      color: var(--secondary-color);
+      text-decoration: none;
+      margin-right: 1rem;
+      font-size: 1rem;
+      transition: color 0.3s;
+    }
+
+    .social-links a:hover {
+      color: #1e5a9e;
+    }
+
+    .policy a {
+      color: var(--secondary-color);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .policy a:hover {
+      color: #1e5a9e;
+    }
+
+    /* Footer */
+    .footer {
+      background: #2d2d2d;
+      color: #fff;
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .footer-section h3 {
+      color: var(--primary-color);
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-section p,
+    .footer-section a {
+      font-size: 0.95rem;
+      color: #a5d6a7;
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .footer-section a:hover {
+      color: #fff;
+    }
+
+    .footer-newsletter input,
+    .footer-newsletter button {
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: none;
+      width: 100%;
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    .footer-newsletter input {
+      background: #fff;
+      color: var(--text-color);
+    }
+
+    .footer-newsletter button {
+      background: var(--primary-color);
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .footer-newsletter button:hover {
+      background: #276749;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-color);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      z-index: 1100;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+
+    .popup.show {
+      opacity: 1;
+    }
+
+    /* Back to Top Button */
+    #back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      display: none;
+      z-index: 1000;
+      font-size: 1.5rem;
+      transition: background 0.3s;
+    }
+
+    #back-to-top:hover {
+      background: #276749;
+    }
+
+    #back-to-top.show {
+      display: block;
+    }
+
+    /* Sticky Cart Icon */
+    .sticky-cart {
+      position: fixed;
+      bottom: 5rem;
+      right: 1rem;
+      background: var(--primary-color);
+      color: #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s;
+    }
+
+    .sticky-cart:hover {
+      background: #276749;
+    }
+
+    .sticky-cart::before {
+      content: '🛒';
+      font-size: 24px;
+    }
+
+    /* Product Filters */
+    .product-filters {
+      max-width: 1000px;
+      margin: 1rem auto;
+      padding: 0 1rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .product-filters label {
+      font-size: 0.95rem;
+      color: var(--text-color);
+    }
+
+    .product-filters select {
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f7fafc;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .product-filters select:focus {
+      border-color: var(--primary-color);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0.75rem 1rem;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .three-dots {
+        display: block !important;
+      }
+
+      .category-bar {
+        display: none !important;
+      }
+
+      .search-bar {
+        width: 150px;
+        font-size: 12px;
+      }
+
+      .hero-banner {
+        flex-direction: column;
+        max-width: 100%;
+      }
+
+      .hero-left,
+      .hero-right {
+        width: 100%;
+      }
+
+      .hero-left {
+        padding: 20px;
+        min-height: 200px;
+      }
+
+      .hero-left h1 {
+        font-size: 28px;
+      }
+
+      .hero-left h1 span {
+        font-size: 24px;
+      }
+
+      .hero-left p {
+        font-size: 14px;
+      }
+
+      .hero-right {
+        padding: 20px;
+      }
+
+      .hero-slider {
+        height: 150px;
+      }
+
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+      }
+
+      .product-images {
+        height: 140px;
+      }
+
+      .product-item h4 {
+        font-size: 1rem;
+      }
+
+      .product-item p,
+      .product-category,
+      .product-stock {
+        font-size: 0.9rem;
+      }
+
+      .product-actions a,
+      .product-actions button {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+      }
+
+      .sticky-cart {
+        display: flex;
+      }
+
+      .product-filters {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .mobile-hidden {
+        display: none !important;
+      }
+
+      .mobile-only {
+        display: block !important;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 0.5rem 0.75rem;
+      }
+
+      .nav-logo {
+        font-size: 20px;
+      }
+
+      .nav-logo span {
+        font-size: 16px;
+      }
+
+      .search-bar {
+        width: 120px;
+        font-size: 11px;
+      }
+
+      .hero-left {
+        padding: 15px;
+        min-height: 150px;
+      }
+
+      .hero-left h1 {
+        font-size: 24px;
+      }
+
+      .hero-left h1 span {
+        font-size: 20px;
+      }
+
+      .hero-left p {
+        font-size: 12px;
+      }
+
+      .hero-right {
+        padding: 15px;
+      }
+
+      .hero-slider {
+        height: 120px;
+      }
+
+      .category-highlight h2 {
+        font-size: 1.5rem;
+      }
+
+      .category-highlight-text {
+        font-size: 1.2rem;
+      }
+
+      .product-item {
+        padding: 0.75rem;
+      }
+
+      .product-images {
+        height: 120px;
+      }
+
+      .product-item h4 {
+        font-size: 0.9rem;
+      }
+
+      .product-item p,
+      .product-category,
+      .product-stock {
+        font-size: 0.85rem;
+      }
+
+      .product-actions a,
+      .product-actions button {
+        padding: 0.4rem;
+        font-size: 0.85rem;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .hero-banner {
+        max-width: 1200px;
+      }
+
+      .hero-left h1 {
+        font-size: 40px;
+      }
+
+      .hero-left h1 span {
+        font-size: 34px;
+      }
+
+      .hero-left p {
+        font-size: 18px;
+      }
+
+      .hero-slider {
+        height: 250px;
+      }
+
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      }
+
+      .product-images {
+        height: 200px;
+      }
+
+      .product-item h4 {
+        font-size: 1.2rem;
+      }
+
+      .product-item p,
+      .product-category,
+      .product-stock {
+        font-size: 1rem;
+      }
+    }
+
+    .category > h2,
+    .all-products > h2 {
+      text-align: center;
+      margin: 2rem 0 1rem 0;
+      font-size: 2rem;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    .view-more-btn {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .view-more-btn:hover {
+      background: #276749;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <button class="three-dots" id="threeDotsBtn" onclick="toggleCategorySidebar()" aria-label="Open Categories">☰</button>
+    <a href="/" class="nav-logo">
+      POTBAZAR<span>🌿</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a>
+      <a href="/#about">About</a>
+      <a href="/policy">Policy</a>
+      <a href="/cart">Cart</a>
+    </div>
+    <div class="nav-icons">
+      <input
+        type="text"
+        placeholder="Search products..."
+        class="search-bar"
+        onkeyup="debounce(searchProducts, 300)(this.value)"
+        aria-label="Search products"
+      >
+      <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">🛒</button>
+      <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Profile">👤</button>
+    </div>
+  </nav>
+
+  <!-- Profile Dropdown / Login Modal -->
+  <% if (user) { %>
+    <div class="profile-dropdown" id="profileDropdown">
+      <p><strong>Name:</strong> <%= user.name || 'Not provided' %></p>
+      <p><strong>Email:</strong> <%= user.email %></p>
+      <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
+      <p><strong>Address:</strong>
+        <% if (user.address && (user.address.street || user.address.city || user.address.state || user.address.pinCode)) { %>
+          <%= user.address.street %><% if (user.address.street) { %>, <% } %>
+          <%= user.address.city %><% if (user.address.city) { %>, <% } %>
+          <%= user.address.state %><% if (user.address.state) { %>, <% } %>
+          <%= user.address.pinCode %>
+        <% } else { %>
+          Not provided
+        <% } %>
+      </p>
+      <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+    </div>
+  <% } else { %>
+    <div class="modal" id="loginModal" style="display:none;">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+        <h3>Please log in or register</h3>
+        <p>Login or register to proceed with this action.</p>
+        <button onclick="window.location.href='/login?redirect=/'" aria-label="Go to Login Page">Login</button>
+        <button onclick="window.location.href='/register?redirect=/'" aria-label="Go to Register Page">Register</button>
+        <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
+          Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
+        </p>
+      </div>
+    </div>
+  <% } %>
+
+  <!-- Category Bar -->
+  <div class="category-bar">
+    <% categories = categories || [
+      { name: 'Plants', subcategories: ['Indoor Plants', 'Outdoor Plants', 'Flowering Plants'] },
+      { name: 'Seeds', subcategories: ['Vegetable Seeds', 'Flower Seeds', 'Herb Seeds'] },
+      { name: 'Fertilizers', subcategories: ['Organic', 'Chemical', 'Liquid'] }
+    ]; %>
+    <% categories.forEach(category => { %>
+      <div class="category-bar-item">
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+          <%= category.name %>
+        </a>
+        <% if (category.subcategories && category.subcategories.length > 0) { %>
+          <div class="category-bar-subcategories">
+            <% category.subcategories.forEach(sub => { %>
+              <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name ? sub.name : sub) %>">
+                <%= sub.name ? sub.name : sub %>
+              </a>
+            <% }) %>
+          </div>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Category Sidebar -->
+  <div class="category-sidebar" id="categorySidebar">
+    <button class="close-btn" onclick="toggleCategorySidebar()" aria-label="Close Categories">×</button>
+    <h3 style="margin-bottom:1rem;">Menu</h3>
+    <div class="sidebar-category">
+      <a href="/"><strong>Home</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener"><strong>Blog</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/#about"><strong>About</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/policy"><strong>Policy</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/cart"><strong>Cart</strong></a>
+    </div>
+    <% if (user) { %>
+      <div class="sidebar-category">
+        <a href="/orders"><strong>My Orders</strong></a>
+      </div>
+    <% } %>
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #fff; opacity: 0.2;">
+    <h3 style="margin-bottom:1rem;">Categories</h3>
+    <% categories.forEach(category => { %>
+      <div class="sidebar-category">
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+          <strong><%= category.name %></strong>
+        </a>
+        <% if (category.subcategories && category.subcategories.length > 0) { %>
+          <ul class="sidebar-subcategories">
+            <% category.subcategories.forEach(sub => { %>
+              <li>
+                <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name ? sub.name : sub) %>">
+                  <%= sub.name ? sub.name : sub %>
+                </a>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Hero Section -->
+  <div class="hero-banner">
+    <div class="hero-left">
+      <h1>POTBAZAR<span>🌿</span></h1>
+      <p>Explore a world of greenery with POTBAZAR!</p>
+    </div>
+    <div class="hero-right">
+      <div class="hero-slider">
+        <img src="/static/slide1.png" alt="Garden Tools" class="slide active" loading="lazy">
+        <img src="/static/slide2.png" alt="Planting Hands" class="slide" loading="lazy">
+        <div class="hero-nav">
+          <div class="hero-nav-dot active" onclick="goToHeroSlide(0)"></div>
+          <div class="hero-nav-dot" onclick="goToHeroSlide(1)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Highlight Section -->
+  <section class="category-highlight">
+    <h2>Explore Our Categories</h2>
+    <p class="category-highlight-text">Discover Your Perfect Plant!</p>
+    <div class="category-highlight-bar">
+      <% categories.slice(0, 6).forEach(category => { %>
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" class="category-highlight-link">
+          <div class="category-highlight-img">
+            <img src="<%= category.image_uri || 'https://source.unsplash.com/60x60/?plant' %>" alt="<%= category.name %>" loading="lazy" onerror="this.src='https://source.unsplash.com/60x60/?plant'">
+          </div>
+          <span><%= category.name %></span>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- Category Sections -->
+  <% 
+    const maxProducts = 16; 
+  %>
+  <% categories.forEach(category => { %>
+    <section class="category" id="cat-<%= category._id %>">
+      <h2><%= category.name %></h2>
+      <% if (category.products && category.products.length > 0) { %>
+        <div class="category-box">
+          <% category.products.slice(0, maxProducts).forEach((product, idx) => { %>
+            <div class="product-item card <%= idx >= 8 ? 'mobile-hidden' : '' %>">
+              <div class="product-images">
+                <a href="/api/products/productdetails?id=<%= product._id %>">
+                  <div class="product-slider">
+                    <% product.images.forEach((image, index) => { %>
+                      <img src="<%= image || 'https://source.unsplash.com/200x180/?plant' %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="this.src='https://source.unsplash.com/200x180/?plant'">
+                    <% }) %>
+                  </div>
+                </a>
+                <% if (product.images.length > 1) { %>
+                  <div class="product-nav">
+                    <button onclick="prevImage(this)" aria-label="Previous Image">❮</button>
+                    <button onclick="nextImage(this)" aria-label="Next Image">❯</button>
+                  </div>
+                <% } %>
+              </div>
+              <span class="product-category"><%= product.category?.name || 'Category' %></span>
+              <h4><%= product.name %></h4>
+              <p>₹<%= product.price.toFixed(2) %></p>
+              <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
+                <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
+              </p>
+              <div class="product-actions">
+                <a href="/api/products/productdetails?id=<%= product._id %>" aria-label="View details for <%= product.name %>">View Details</a>
+                <a href="javascript:void(0)"
+                   onclick="checkLoginBeforeAction(() => addToCart('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
+                   <%= product.stock === 0 ? 'style="pointer-events:none;opacity:0.5;"' : '' %>
+                   aria-label="Add <%= product.name %> to cart">
+                   Add to Cart
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+        <% if (category.products.length > maxProducts) { %>
+          <button class="view-more-btn" onclick="window.location.href='/api/products/products?category=<%= encodeURIComponent(category.name) %>'" aria-label="View more products in <%= category.name %>">View More</button>
+        <% } else if (category.products.length > 8) { %>
+          <button class="view-more-btn mobile-only" onclick="showAllProducts(this)" aria-label="Show all products">View More</button>
+        <% } %>
+      <% } else { %>
+        <p style="text-align: center; color: var(--secondary-text-color);">No products available in this category.</p>
+      <% } %>
+    </section>
+  <% }) %>
+
+  <!-- All Products Section -->
+  <section class="all-products">
+    <h2>All Products</h2>
+    <div class="product-filters">
+      <label for="sort">Sort by:</label>
+      <select id="sort" onchange="window.location.search='?sort='+this.value" aria-label="Sort products">
+        <option value="">Default</option>
+        <option value="price-asc">Price: Low → High</option>
+        <option value="price-desc">Price: High → Low</option>
+      </select>
+    </div>
+    <div class="all-products-grid">
+      <% 
+        const maxAllProducts = 16;
+        products.slice(0, maxAllProducts).forEach(product => { 
+      %>
+        <div class="product-item card">
+          <div class="product-images">
+            <a href="/api/products/productdetails?id=<%= product._id %>">
+              <div class="product-slider">
+                <% product.images.forEach((image, index) => { %>
+                  <img src="<%= image || 'https://source.unsplash.com/200x180/?plant' %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="this.src='https://source.unsplash.com/200x180/?plant'">
+                <% }) %>
+              </div>
+            </a>
+            <% if (product.images.length > 1) { %>
+              <div class="product-nav">
+                <button onclick="prevImage(this)" aria-label="Previous Image">❮</button>
+                <button onclick="nextImage(this)" aria-label="Next Image">❯</button>
+              </div>
+            <% } %>
+          </div>
+          <span class="product-category"><%= product.category?.name || 'Category' %></span>
+          <h4><%= product.name %></h4>
+          <p>₹<%= product.price.toFixed(2) %></p>
+          <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
+            <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
+          </p>
+          <div class="product-actions">
+            <a href="/api/products/productdetails?id=<%= product._id %>" aria-label="View details for <%= product.name %>">View Details</a>
+            <a href="javascript:void(0)"
+               onclick="checkLoginBeforeAction(() => addToCart('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
+               <%= product.stock === 0 ? 'style="pointer-events:none;opacity:0.5;"' : '' %>
+               aria-label="Add <%= product.name %> to cart">
+               Add to Cart
+            </a>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+    <% if (products.length > maxAllProducts) { %>
+      <button class="view-more-btn" onclick="window.location.href='/api/products/products'" aria-label="View more products">View More</button>
+    <% } %>
+  </section>
+
+  <!-- About Section -->
+  <section id="about">
+    <div class="about-content">
+      <div class="about-text">
+        <h2>About Us</h2>
+        <p>
+          Welcome to PLANTO, your one-stop destination for all things green. We offer a wide variety of plants, seeds, and fertilizers to help you build your perfect garden. Our team of experts is dedicated to providing you with the highest quality products.
+        </p>
+        <div class="contact-info">
+          <h3>Contact Us</h3>
+          <p><strong>Website:</strong> Potbazar.com</p>
+          <p><strong>Email:</strong> Potbazar014@gmail.com</p>
+          <p><strong>Whatsapp Message:</strong> +91 9760653073 <br><span style="font-size:0.95em;color:#888;">(Do not call, only Whatsapp, 10AM to 6PM, Monday to Saturday)</span></p>
+          <p><strong>Head Office:</strong> Firozabad (Uttar Pradesh)<br>Pin-283145</p>
+        </div>
+        <div class="social-links" style="margin:18px 0;">
+          <a href="https://www.facebook.com/share/1ACfzA87VW/" target="_blank" rel="noopener">Facebook</a>
+          <a href="https://youtube.com/@homegarden26?si=lZkW419jMM38KXeK" target="_blank" rel="noopener">YouTube</a>
+          <a href="https://www.instagram.com/homegardenyt?utm_source=qr&igsh=NWtidWE4ZHpsbmh4" target="_blank" rel="noopener">Instagram</a>
+        </div>
+        <p class="policy">
+          Read our <a href="/policy">Privacy Policy and return policy</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About PLANTO</h3>
+        <p>Your one-stop shop for quality plants and gardening supplies.</p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <p><a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a></p>
+      </div>
+      <div class="footer-section">
+        <h3>Support</h3>
+        <p>Email: <a href="mailto:Potbazar014@gmail.com">Potbazar014@gmail.com</a></p>
+        <p>Phone: (+91) 9760653073</p>
+      </div>
+      <div class="footer-section footer-newsletter">
+        <h3>Newsletter</h3>
+        <p>Subscribe for the latest plant care tips and offers!</p>
+        <form onsubmit="handleNewsletterSubmit(event)">
+          <input type="email" placeholder="Enter your email" required aria-label="Email for newsletter">
+          <button type="submit" aria-label="Subscribe to newsletter">Subscribe</button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2025 PLANTO. All rights reserved.</p>
+      <p>Website created by: <a href="mailto:xshankarmishra@gmail.com">xshankarmishra@gmail.com</a></p>
+    </div>
+  </footer>
+
+  <!-- Cart Popup -->
+  <div class="popup hidden" id="cartPopup">Product added to cart!</div>
+
+  <!-- Back to Top Button -->
+  <button id="back-to-top" aria-label="Back to Top">↑</button>
+
+  <!-- Sticky Cart Icon -->
+  <div class="sticky-cart" onclick="goToCart()"></div>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+    let profileVisible = false;
+    let scrollPosition = 0;
+
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function searchProducts(searchTerm) {
+      // Placeholder for search functionality
+      console.log('Search term:', searchTerm);
+    }
+
+    async function apiRequest(method, url, data, token) {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+        const response = await axios.request({
+          method,
+          url: `${API_BASE_URL}${url}`,
+          data,
+          headers,
+        });
+        return response.data;
+      } catch (error) {
+        throw error.response?.data || { message: 'Request failed' };
+      }
+    }
+
+    function checkLoginBeforeAction(actionCallback) {
+      fetch('/check-login')
+        .then(res => res.json())
+        .then(data => {
+          if (data.loggedIn) {
+            actionCallback();
+          } else {
+            document.getElementById('loginModal').style.display = 'flex';
+          }
+        })
+        .catch(error => {
+          console.error('Error checking login:', error);
+          document.getElementById('loginModal').style.display = 'flex';
+        });
+    }
+
+    function goToCart() {
+      checkLoginBeforeAction(() => {
+        window.location.href = '/cart';
+      });
+    }
+
+    function toggleProfile() {
+      checkLoginBeforeAction(() => {
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) {
+          profileVisible = !profileVisible;
+          dropdown.classList.toggle('show', profileVisible);
+        }
+      });
+    }
+
+    async function logout() {
+      try {
+        const token = localStorage.getItem('token');
+        await apiRequest('post', '/api/users/logout', null, token);
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        localStorage.removeItem('token');
+        localStorage.removeItem('cart');
+        profileVisible = false;
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) dropdown.classList.remove('show');
+        window.location.href = '/login';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function toggleCategorySidebar() {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      } else {
+        scrollPosition = window.pageYOffset;
+        sidebar.classList.add('show');
+        document.body.classList.add('body-no-scroll');
+      }
+    }
+
+    function addToCart(productId, productName, productPrice, productImage, productDescription) {
+      let cart = JSON.parse(localStorage.getItem('cart')) || [];
+      const existing = cart.find(item => item.id === productId);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({
+          id: productId,
+          name: productName,
+          price: parseFloat(productPrice),
+          image: productImage || 'https://source.unsplash.com/200x180/?plant',
+          description: productDescription,
+          quantity: 1
+        });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart));
+      const popup = document.getElementById('cartPopup');
+      popup.classList.remove('hidden');
+      popup.classList.add('show');
+      setTimeout(() => {
+        popup.classList.remove('show');
+        setTimeout(() => popup.classList.add('hidden'), 500);
+      }, 2000);
+    }
+
+    function showAllProducts(btn) {
+      const categoryBox = btn.closest('.category').querySelector('.category-box');
+      if (categoryBox) {
+        categoryBox.querySelectorAll('.mobile-hidden').forEach(el => el.style.display = 'block');
+      }
+      btn.style.display = 'none';
+    }
+
+    function handleNewsletterSubmit(event) {
+      event.preventDefault();
+      alert('Subscribed successfully!');
+      event.target.reset();
+    }
+
+    let currentHeroSlide = 0;
+    const heroSlides = document.querySelectorAll('.hero-slider .slide');
+    const heroDots = document.querySelectorAll('.hero-nav-dot');
+
+    function updateHeroSlide() {
+      heroSlides.forEach(slide => slide.classList.remove('active'));
+      heroDots.forEach(dot => dot.classList.remove('active'));
+      if (heroSlides[currentHeroSlide]) {
+        heroSlides[currentHeroSlide].classList.add('active');
+        heroDots[currentHeroSlide].classList.add('active');
+      }
+    }
+
+    function goToHeroSlide(index) {
+      if (index >= 0 && index < heroSlides.length) {
+        currentHeroSlide = index;
+        updateHeroSlide();
+      }
+    }
+
+    if (heroSlides.length > 0) {
+      updateHeroSlide();
+      setInterval(() => {
+        currentHeroSlide = (currentHeroSlide + 1) % heroSlides.length;
+        updateHeroSlide();
+      }, 5000);
+    }
+
+    function prevImage(button) {
+      const slider = button.closest('.product-images').querySelector('.product-slider');
+      const images = slider.querySelectorAll('img');
+      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+      images[current].classList.remove('active');
+      current = (current - 1 + images.length) % images.length;
+      images[current].classList.add('active');
+    }
+
+    function nextImage(button) {
+      const slider = button.closest('.product-images').querySelector('.product-slider');
+      const images = slider.querySelectorAll('img');
+      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+      images[current].classList.remove('active');
+      current = (current + 1) % images.length;
+      images[current].classList.add('active');
+    }
+
+    window.addEventListener('click', function(e) {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      }
+
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+        dropdown.classList.remove('show');
+        profileVisible = false;
+      }
+
+      const modal = document.getElementById('loginModal');
+      if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+        modal.style.display = 'none';
+      }
+    });
+
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const sidebar = document.getElementById('categorySidebar');
+        if (sidebar && sidebar.classList.contains('show')) {
+          sidebar.classList.remove('show');
+          document.body.classList.remove('body-no-scroll');
+          window.scrollTo(0, scrollPosition);
+        }
+        const modal = document.getElementById('loginModal');
+        if (modal && modal.style.display === 'flex') {
+          modal.style.display = 'none';
+        }
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown && dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+          profileVisible = false;
+        }
+      }
+    });
+
+    window.addEventListener('scroll', function() {
+      const backToTop = document.getElementById('back-to-top');
+      if (window.scrollY > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+
+    document.getElementById('back-to-top').addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

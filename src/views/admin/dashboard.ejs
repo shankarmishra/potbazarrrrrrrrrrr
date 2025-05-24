@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="/styles/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0E0E0E;
+      color: #FFFFFF;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      margin-left: 240px;
+      margin-top: 2rem;
+      font-size: 2rem;
+      padding: 0 1rem;
+      color: #DC2040; /* Red accent for heading */
+    }
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin: 2rem 1rem 2rem 240px;
+    }
+    .card {
+      background-color: #1C1C1C;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 0 10px rgba(220, 32, 64, 0.3); /* Subtle red glow */
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.03); /* Slight scale on hover */
+      box-shadow: 0 0 15px rgba(220, 32, 64, 0.5); /* Enhanced glow */
+    }
+    .card-products {
+      background-color: #DC2040;
+    }
+    .card-orders {
+      background-color: #FF7A22;
+    }
+    .card-users {
+      background-color: #27C70F;
+    }
+    .card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: #FFFFFFCC; /* Slightly transparent white */
+      font-weight: 600;
+    }
+    .card p {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #FFFFFF; /* White for contrast against colored backgrounds */
+    }
+    @media (max-width: 900px) {
+      h1,
+      .admin-stats {
+        margin-left: 0;
+      }
+      .admin-stats {
+        margin: 2rem 1rem;
+      }
+    }
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.5rem; /* Adjusted for readability */
+        margin-top: 1rem;
+      }
+      .admin-stats {
+        gap: 1rem;
+      }
+      .card {
+        padding: 1rem;
+      }
+      .card p {
+        font-size: 1.5rem;
+      }
+      .card h3 {
+        font-size: 0.9rem;
+      }
+    }
+    .access-denied {
+      text-align: center;
+      margin-top: 5rem;
+    }
+    .access-denied h1 {
+      font-size: 2rem;
+      color: #DC2040; /* Red accent */
+      margin-bottom: 1rem;
+    }
+    .access-denied p {
+      font-size: 1.2rem;
+      color: #FFFFFF; /* White for readability */
+      margin-bottom: 1rem;
+    }
+    .access-denied a {
+      font-size: 1rem;
+      color: #DC2040; /* Red accent */
+      text-decoration: none;
+      font-weight: 600;
+    
+    }
+    .access-denied a:hover {
+      color: #B71E35; /* Darker red on hover */
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+    <% if (typeof include === 'function') { %>
+      <%- include('../components/Navbar') %>
+      <%- include('../components/Sidebar') %>
+    <% } %>
+    <h1>Welcome to the Admin Dashboard</h1>
+    <div class="admin-stats">
+      <% if (typeof totalProducts !== 'undefined') { %>
+        <div class="card card-products">
+          <h3>Total Products</h3>
+          <p><%= totalProducts %></p>
+        </div>
+      <% } %>
+      <% if (typeof totalOrders !== 'undefined') { %>
+        <div class="card card-orders">
+          <h3>Total Orders</h3>
+          <p><%= totalOrders %></p>
+        </div>
+      <% } %>
+      <% if (typeof totalUsers !== 'undefined') { %>
+        <div class="card card-users">
+          <h3>Total Users</h3>
+          <p><%= totalUsers %></p>
+        </div>
+      <% } %>
+    </div>
+    <% if (typeof include === 'function') { %>
+      <%- include('../components/Footer') %>
+    <% } %>
+  <% } else { %>
+    <div class="access-denied">
+      <h1>Access Denied</h1>
+      <p>You do not have permission to access this page.</p>
+      <a href="/admin/login">Go to Login</a>
+    </div>
+  <% } %>
+</body>
+</html>

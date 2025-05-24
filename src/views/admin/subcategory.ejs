@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Add Subcategory</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/styles/admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-color: #0E0E0E;
+      --card-color: #1C1C1C;
+      --accent-color: #DC2040;
+      --text-color: #FFFFFF;
+      --text-secondary: #FFFFFFCC;
+      --input-bg: #2E2E2E;
+      --border-color: #444;
+      --error-color: #f44336;
+      --secondary-bg: #141414;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-color);
+    }
+
+    .form-container {
+      max-width: 400px;
+      margin: 2rem auto;
+      background: var(--card-color);
+      padding: 2rem;
+      border-radius: 12px;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+    }
+
+    label {
+      display: block;
+      margin-top: 1rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 0.5rem;
+      margin-top: 0.25rem;
+      border-radius: 5px;
+      border: 1px solid var(--border-color);
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      padding: 0.7rem;
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #B71E35;
+    }
+
+    .msg {
+      text-align: center;
+      margin-top: 1rem;
+    }
+
+    .msg.error {
+      color: var(--error-color);
+    }
+
+    .msg.success {
+      color: var(--accent-color);
+    }
+
+    /* Table styles */
+    .subcategory-table-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      background: var(--card-color);
+      padding: 1.5rem;
+      border-radius: 12px;
+      color: var(--text-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: var(--secondary-bg);
+      font-weight: 600;
+    }
+
+    form.delete-form {
+      margin: 0;
+    }
+
+    form.delete-form button {
+      width: auto;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      background: #f44336;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    form.delete-form button:hover {
+      background: #c32a1f;
+    }
+
+    @media (max-width: 600px) {
+      .form-container, .subcategory-table-container {
+        padding: 1rem;
+        margin: 1rem;
+      }
+
+      table, th, td {
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('../components/Navbar') %>
+
+  <div class="form-container">
+    <h2>Add Subcategory</h2>
+
+    <form action="/api/category/subcategory/add" method="POST">
+      <label for="name">Subcategory Name</label>
+      <input type="text" name="name" id="name" required />
+
+      <label for="description">Description</label>
+      <textarea name="description" id="description" rows="3" placeholder="Enter description"></textarea>
+
+      <label for="categoryId">Select Category</label>
+      <select name="category" id="categoryId" required>
+        <% categories.forEach(cat => { %>
+          <option value="<%= cat._id %>"><%= cat.name %></option>
+        <% }) %>
+      </select>
+
+      <button type="submit">Add Subcategory</button>
+    </form>
+
+    <% if (subcategoryError) { %>
+      <div class="msg error"><%= subcategoryError %></div>
+    <% } %>
+    <% if (subcategorySuccess) { %>
+      <div class="msg success"><%= subcategorySuccess %></div>
+    <% } %>
+  </div>
+
+  <div class="subcategory-table-container">
+    <h2>Existing Subcategories</h2>
+    <% if (subcategories.length === 0) { %>
+      <p>No subcategories found.</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% subcategories.forEach(subcat => { %>
+            <tr>
+              <td><%= subcat.name %></td>
+              <td>
+                <% if (subcat.category && subcat.category.name) { %>
+                  <%= subcat.category.name %>
+                <% } else { %>
+                  Unknown
+                <% } %>
+              </td>
+              <td><%= subcat.description || '—' %></td>
+              <td>
+                <form class="delete-form" action="/api/category/subcategory/delete/<%= subcat._id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this subcategory?');">
+                  <button type="submit">Delete</button>
+                </form>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    <% } %>
+  </div>
+</body>
+</html>

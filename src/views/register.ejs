@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POTBAZAR | Register</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(to bottom, #f0f7e7, #ffffff);
+      padding: 20px;
+    }
+
+    .container {
+      display: flex;
+      max-width: 900px;
+      width: 100%;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      background: #fff;
+    }
+
+    .left-section {
+      width: 50%;
+      background-color: #2f855a;
+      padding: 40px;
+      color: #e6f4ea;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .left-section h1 {
+      font-size: 36px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #d1e8d2;
+    }
+
+    .left-section h1 span {
+      margin-left: 10px;
+      font-size: 30px;
+    }
+
+    .left-section p {
+      font-size: 16px;
+      opacity: 0.9;
+      color: #c5e1c5;
+    }
+
+    .right-section {
+      width: 50%;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: #fff;
+      color: #2d3748;
+    }
+
+    .right-section h2 {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: #276749;
+    }
+
+    .right-section p.subtitle {
+      color: #4a5568;
+      margin-bottom: 20px;
+    }
+
+    .error-message {
+      color: #e53e3e;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .success-message {
+      color: #2f855a;
+      margin-bottom: 15px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      color: #2d3748;
+      margin-bottom: 5px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #f7fafc;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus {
+      border-color: #2f855a;
+      box-shadow: 0 0 0 3px rgba(47, 133, 90, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: #2f855a;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #276749;
+    }
+
+    .login-link {
+      text-align: center;
+      margin-top: 20px;
+      color: #4a5568;
+      font-size: 14px;
+    }
+
+    .login-link a {
+      color: #3182ce;
+      text-decoration: none;
+    }
+
+    .login-link a:hover {
+      text-decoration: underline;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        max-width: 100%;
+      }
+
+      .left-section,
+      .right-section {
+        width: 100%;
+      }
+
+      .left-section {
+        padding: 20px;
+        min-height: 200px;
+        align-items: center;
+      }
+
+      .left-section h1 {
+        font-size: 28px;
+      }
+
+      .left-section h1 span {
+        font-size: 24px;
+      }
+
+      .left-section p {
+        font-size: 14px;
+      }
+
+      .right-section {
+        padding: 20px;
+      }
+
+      .right-section h2 {
+        font-size: 20px;
+      }
+
+      .right-section p.subtitle {
+        font-size: 14px;
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        font-size: 12px;
+      }
+
+      .form-group input {
+        padding: 10px;
+        font-size: 12px;
+      }
+
+      button {
+        padding: 10px;
+        font-size: 14px;
+      }
+
+      .login-link {
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Left Section -->
+    <div class="left-section">
+      <h1>POTBAZAR <span>🌱</span></h1>
+      <p>Welcome to POTBAZAR! Register to start your gardening journey.</p>
+    </div>
+
+    <!-- Right Section -->
+    <div class="right-section">
+      <h2>Create Account</h2>
+      <p class="subtitle">Fill in your details to register</p>
+      <p class="error-message" id="error-message"></p>
+      <p class="success-message" id="success-message"></p>
+
+      <form id="register-form" method="POST" action="/api/users/register" role="form" autocomplete="off">
+        <div class="form-group">
+          <label for="name">Full Name *</label>
+          <input type="text" id="name" name="name" placeholder="Your full name" required minlength="2" maxlength="50" />
+        </div>
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required />
+        </div>
+        <div class="form-group">
+          <label for="password">Password * (min 8 characters)</label>
+          <input type="password" id="password" name="password" placeholder="Create a password" required minlength="8" autocomplete="new-password" />
+        </div>
+        <div class="form-group">
+          <label for="phone">Phone Number *</label>
+          <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number" required pattern="\d{10}" maxlength="10" autocomplete="tel" />
+        </div>
+        <div class="form-group">
+          <label for="street">Street Address *</label>
+          <input type="text" id="street" name="street" placeholder="House no. and street" required minlength="3" maxlength="100" autocomplete="street-address" />
+        </div>
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input type="text" id="city" name="city" placeholder="Your city" required minlength="2" maxlength="50" autocomplete="address-level2" />
+        </div>
+        <div class="form-group">
+          <label for="state">State *</label>
+          <input type="text" id="state" name="state" placeholder="Your state" required minlength="2" maxlength="50" autocomplete="address-level1" />
+        </div>
+        <div class="form-group">
+          <label for="pinCode">PIN Code *</label>
+          <input type="text" id="pinCode" name="pinCode" placeholder="6-digit PIN code" required pattern="\d{6}" maxlength="6" autocomplete="postal-code" />
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          <input type="text" id="country" name="country" value="India" required readonly />
+        </div>
+        <button type="submit">Register</button>
+      </form>
+
+      <p class="login-link">Already have an account? <a href="/login">Login here</a></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async function (event) {
+      event.preventDefault();
+      
+      const form = event.target;
+      const errorMessage = document.getElementById('error-message');
+      const successMessage = document.getElementById('success-message');
+      
+      errorMessage.style.display = 'none';
+      successMessage.style.display = 'none';
+      errorMessage.textContent = '';
+      successMessage.textContent = '';
+
+      // Get form data
+      const formData = {
+        name: form.name.value.trim(),
+        email: form.email.value.trim().toLowerCase(),
+        password: form.password.value,
+        phone: form.phone.value.trim(),
+        street: form.street.value.trim(),
+        city: form.city.value.trim(),
+        state: form.state.value.trim(),
+        pinCode: form.pinCode.value.trim(),
+        country: form.country.value.trim()
+      };
+
+      // Check for empty required fields
+      for (const key of ['name', 'email', 'password', 'phone', 'street', 'city', 'state', 'pinCode']) {
+        if (!formData[key]) {
+          showError('All required fields must be provided');
+          return;
+        }
+      }
+
+      // Client-side validation
+      if (formData.password.length < 8) {
+        showError('Password must be at least 8 characters');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      if (!/^[0-9]{10}$/.test(formData.phone)) {
+        showError('Please enter a valid 10-digit phone number');
+        return;
+      }
+
+      try {
+        const response = await fetch(form.action, {
+          method: form.method,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Registration failed. Please try again.');
+        }
+
+        // Registration successful: render login page
+        window.location.replace(data.redirect || '/login?success=1');
+      } catch (error) {
+        showError(error.message);
+      }
+    });
+
+    function showError(message) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = message;
+      errorElement.style.display = 'block';
+      errorElement.style.color = '#e53e3e';
+    }
+
+    function showSuccess(message) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = message;
+      successElement.style.display = 'block';
+      successElement.style.color = '#2f855a';
+    }
+  </script>
+</body>
+</html>

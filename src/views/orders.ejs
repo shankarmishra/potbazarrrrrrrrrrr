@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POTBAZAR | My Orders</title>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+  <style>
+    :root {
+      --primary-color: #2f855a;
+      --secondary-color: #3182ce;
+      --text-color: #333;
+      --secondary-text-color: #666;
+      --bg-color: #f0f7e7;
+      --card-bg: #ffffff;
+      font-size: 16px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(to bottom, var(--bg-color), #ffffff);
+      color: var(--text-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      width: 100vw;
+      overflow-x: hidden;
+    }
+
+    .hidden { display: none !important; }
+
+    /* Navbar */
+    .navbar {
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      padding: 1rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .nav-logo img {
+      height: 36px;
+      margin-right: 8px;
+    }
+
+    .nav-logo span {
+      font-size: 20px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .nav-links a {
+      color: #fff;
+      text-decoration: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 6px;
+      transition: background 0.3s;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus {
+      background: rgba(0, 0, 0, 0.2);
+      outline: none;
+    }
+
+    .nav-icons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .search-bar {
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #ddd;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      width: 200px;
+      font-size: 14px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .search-bar:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 5px rgba(47, 133, 90, 0.3);
+      outline: none;
+    }
+
+    .cart-icon-btn,
+    .profile-icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 24px;
+      color: #fff;
+    }
+
+    .cart-icon {
+      width: 24px;
+      height: 24px;
+      filter: brightness(0) invert(1);
+    }
+
+    .three-dots {
+      display: none;
+      cursor: pointer;
+      font-size: 2rem;
+      color: #fff;
+      background: none;
+      border: none;
+    }
+
+    /* Profile Dropdown */
+    .profile-dropdown {
+      display: none;
+      position: absolute;
+      top: 60px;
+      right: 1rem;
+      background: var(--card-bg);
+      border: 1px solid #e0e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+      min-width: 240px;
+      padding: 1rem;
+      z-index: 1300;
+    }
+
+    .profile-dropdown.show {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .profile-dropdown p {
+      margin: 0.5rem 0;
+      font-size: 14px;
+      color: var(--text-color);
+    }
+
+    .profile-dropdown button {
+      width: 100%;
+      padding: 10px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 0.25rem 0;
+      transition: background 0.3s;
+    }
+
+    .profile-dropdown button:hover,
+    .profile-dropdown button:focus {
+      background: #276749;
+      outline: none;
+    }
+
+    /* Login Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      padding: 1.5rem;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      position: relative;
+    }
+
+    .modal-content h3 {
+      margin-top: 0;
+      color: var(--text-color);
+      font-size: 1.5rem;
+    }
+
+    .modal-content button {
+      padding: 10px 20px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.25rem;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .modal-content button:hover,
+    .modal-content button:focus {
+      background: #276749;
+      outline: none;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-color);
+    }
+
+    /* Orders Section */
+    .orders-section {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .orders-section h1 {
+      font-size: 2rem;
+      color: var(--primary-color);
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .order-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .order-card h3 {
+      font-size: 1.5rem;
+      color: var(--text-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .order-card p {
+      font-size: 1rem;
+      color: var(--secondary-text-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .order-items {
+      margin-top: 1rem;
+      display: grid;
+      gap: 1rem;
+    }
+
+    .order-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .order-item img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .order-item-details {
+      flex: 1;
+    }
+
+    .no-orders {
+      text-align: center;
+      color: var(--secondary-text-color);
+      font-size: 1.2rem;
+      margin: 2rem 0;
+    }
+
+    /* Sidebar */
+    .category-sidebar {
+      display: none;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      left: -100%;
+      width: 80vw;
+      max-width: 320px;
+      height: 100vh;
+      background: linear-gradient(90deg, var(--primary-color), #276749);
+      color: #fff;
+      z-index: 2000;
+      padding: 2rem 1.2rem;
+      overflow-y: auto;
+      transition: left 0.3s ease;
+    }
+
+    .category-sidebar.show {
+      display: flex;
+      left: 0;
+    }
+
+    .category-sidebar .close-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    .sidebar-category {
+      margin-bottom: 1.2rem;
+    }
+
+    .sidebar-category > a {
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories {
+      margin: 0.5rem 0 0 1rem;
+      padding: 0;
+      list-style: disc;
+    }
+
+    .sidebar-subcategories li {
+      margin-bottom: 0.3rem;
+    }
+
+    .sidebar-subcategories a {
+      color: #e0ffe0;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .sidebar-subcategories a:hover,
+    .sidebar-subcategories a:focus {
+      color: #d1e8d1;
+      outline: none;
+    }
+
+    /* Footer */
+    .footer {
+      background: #2d2d2d;
+      color: #fff;
+      padding: 2rem 1rem;
+      margin-top: auto;
+    }
+
+    .footer-content {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .footer-section h3 {
+      color: var(--primary-color);
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .footer-section p,
+    .footer-section a {
+      font-size: 0.95rem;
+      color: #a5d6a7;
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .footer-section a:hover,
+    .footer-section a:focus {
+      color: #fff;
+      outline: none;
+    }
+
+    .footer-bottom {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+    }
+
+    .body-no-scroll {
+      overflow: hidden !important;
+      height: 100vh !important;
+      position: fixed !important;
+      width: 100vw;
+    }
+
+    @media (max-width: 768px) {
+      .navbar {
+        padding: 0.75rem 1rem;
+      }
+
+      .nav-links {
+        display: none !important;
+      }
+
+      .three-dots {
+        display: block !important;
+      }
+
+      .search-bar {
+        width: 160px;
+        font-size: 12px;
+      }
+
+      .order-card {
+        padding: 1rem;
+      }
+
+      .order-item img {
+        width: 60px;
+        height: 60px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .navbar {
+        padding: 0.5rem 0.75rem;
+      }
+
+      .nav-logo {
+        font-size: 20px;
+      }
+
+      .nav-logo img {
+        height: 30px;
+      }
+
+      .nav-logo span {
+        font-size: 16px;
+      }
+
+      .search-bar {
+        width: 130px;
+        font-size: 11px;
+      }
+
+      .orders-section h1 {
+        font-size: 1.5rem;
+      }
+
+      .order-card h3 {
+        font-size: 1.2rem;
+      }
+
+      .order-card p {
+        font-size: 0.9rem;
+      }
+
+      .order-item img {
+        width: 50px;
+        height: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <button class="three-dots" id="threeDotsBtn" aria-label="Open Menu" onclick="toggleCategorySidebar()">☰</button>
+    <a href="/" class="nav-logo">
+      <img src="/static/logo.png" alt="POTBAZAR Logo" loading="lazy" onerror="this.src='/images/default-logo.png'">
+      POTBAZAR<span>🌱</span>
+    </a>
+    <div class="nav-links">
+      <a href="/">Home</a>
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a>
+      <a href="/#about">About</a>
+      <a href="/policy">Policy</a>
+      <a href="/cart">Cart</a>
+    </div>
+    <div class="nav-icons">
+      <input
+        type="text"
+        placeholder="Search products..."
+        class="search-bar"
+        onkeyup="debounceSearch(this.value)"
+        aria-label="Search products"
+      />
+      <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">
+        <img src="/static/cart-icon.png" alt="Cart" class="cart-icon" loading="lazy" onerror="this.src='/images/default-cart.png'">
+      </button>
+      <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Toggle Profile">👤</button>
+    </div>
+  </nav>
+
+  <!-- Profile Dropdown / Login Modal -->
+  <div class="profile-dropdown" id="profileDropdown" role="menu">
+    <p><strong>Name:</strong> <%= user?.name || 'Not provided' %></p>
+    <p><strong>Email:</strong> <%= user?.email || 'Not provided' %></p>
+    <p><strong>Phone:</strong> <%= user?.phone || 'Not provided' %></p>
+    <p><strong>Address:</strong> <%= user?.addresses?.[0] ? `${user.addresses[0].street}, ${user.addresses[0].city}, ${user.addresses[0].state}, ${user.addresses[0].pinCode}, ${user.addresses[0].country}` : 'Not provided' %></p>
+    <button onclick="window.location.href='/orders'" role="menuitem">My Orders</button>
+    <button onclick="logout()" role="menuitem">Logout</button>
+  </div>
+  <div class="modal" id="loginModal" role="dialog" aria-labelledby="loginModalTitle">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()" aria-label="Close modal">×</button>
+      <h3 id="loginModalTitle">Please log in or register to proceed</h3>
+      <button onclick="window.location.href='/login'">Login</button>
+      <button onclick="window.location.href='/register'">Register</button>
+      <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
+        Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Category Sidebar -->
+  <div class="category-sidebar" id="categorySidebar" role="navigation" aria-label="Mobile Categories">
+    <button class="close-btn" onclick="toggleCategorySidebar()" aria-label="Close Menu">×</button>
+    <h3 style="margin-bottom:1rem;">Menu</h3>
+    <div class="sidebar-category"><a href="/">Home</a></div>
+    <div class="sidebar-category"><a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a></div>
+    <div class="sidebar-category"><a href="/#about">About</a></div>
+    <div class="sidebar-category"><a href="/policy">Policy</a></div>
+    <div class="sidebar-category"><a href="/cart">Cart</a></div>
+    <hr style="margin: 1rem 0; border: none; border-top: 1px solid #fff; opacity: 0.2;">
+    <h3 style="margin-bottom:1rem;">Categories</h3>
+    <% if (categories?.length) { %>
+      <% categories.forEach(category => { %>
+        <div class="sidebar-category">
+          <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+            <strong><%= category.name %></strong>
+          </a>
+          <% if (category.subcategories?.length) { %>
+            <ul class="sidebar-subcategories">
+              <% category.subcategories.forEach(sub => { %>
+                <li>
+                  <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name || sub) %>">
+                    <%= sub.name || sub %>
+                  </a>
+                </li>
+              <% }) %>
+            </ul>
+          <% } %>
+        </div>
+      <% }) %>
+    <% } %>
+  </div>
+
+  <!-- Orders Section -->
+  <section class="orders-section">
+    <h1>My Orders</h1>
+    <% if (orders?.length) { %>
+      <div class="orders-list" role="list">
+        <% orders.forEach(order => { %>
+          <div class="order-card" role="listitem">
+            <h3>Order #<%= order._id %></h3>
+            <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
+            <p><strong>Status:</strong> <%= order.status || 'Pending' %></p>
+            <p><strong>Total:</strong> ₹<%= order.total?.toFixed(2) || '0.00' %></p>
+            <div class="order-items">
+              <% order.items?.forEach(item => { %>
+                <div class="order-item">
+                  <img src="<%= item.product?.images?.[0] || '/images/default-image.jpg' %>" alt="<%= item.product?.name || 'Product' %>" loading="lazy">
+                  <div class="order-item-details">
+                    <p><strong><%= item.product?.name || 'Unknown Product' %></strong></p>
+                    <p>Quantity: <%= item.quantity %></p>
+                    <p>Price: ₹<%= item.price?.toFixed(2) || '0.00' %></p>
+                  </div>
+                </div>
+              <% }) %>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+    <% } else { %>
+      <p class="no-orders">No orders found.</p>
+    <% } %>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3>About POTBAZAR</h3>
+        <p>Your one-stop shop for quality plants and gardening supplies.</p>
+      </div>
+      <div class="footer-section">
+        <h3>Quick Links</h3>
+        <p><a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a></p>
+      </div>
+      <div class="footer-section">
+        <h3>Support</h3>
+        <p>Email: <a href="mailto:Potbazar014@gmail.com">Potbazar014@gmail.com</a></p>
+        <p>Phone: (+91) 9760653073</p>
+      </div>
+      <div class="footer-section footer-newsletter">
+        <h3>Newsletter</h3>
+        <p>Subscribe for the latest plant care tips and offers!</p>
+        <form onsubmit="handleNewsletterSubmit(event)">
+          <input type="email" placeholder="Enter your email" required aria-label="Email for newsletter">
+          <button type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <%= new Date().getFullYear() %> POTBAZAR. All rights reserved.</p>
+      <p>Website created by: <a href="mailto:xshankarmishra@gmail.com">xshankarmishra@gmail.com</a></p>
+    </div>
+  </footer>
+
+  <script>
+    const API_BASE_URL = 'http://localhost:3000';
+
+    async function apiRequest(method, url, data, token) {
+      try {
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        if (data?._csrf) headers['X-CSRF-Token'] = data._csrf;
+        const response = await axios.request({
+          method,
+          url: `${API_BASE_URL}${url}`,
+          data,
+          headers,
+          withCredentials: true
+        });
+        return response.data;
+      } catch (error) {
+        if (error.response?.status === 401 && token) {
+          const refreshToken = localStorage.getItem('refreshToken');
+          if (refreshToken) {
+            try {
+              const refreshResponse = await axios.post(`${API_BASE_URL}/api/users/refresh-token`, { refreshToken });
+              const { token: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
+              localStorage.setItem('accessToken', newAccessToken);
+              localStorage.setItem('refreshToken', newRefreshToken);
+              return await apiRequest(method, url, data, newAccessToken);
+            } catch (refreshError) {
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('refreshToken');
+              showModal();
+              throw refreshError;
+            }
+          } else {
+            showModal();
+          }
+        }
+        throw error.response?.data || { message: 'Request failed' };
+      }
+    }
+
+    let debounceTimer;
+    function debounceSearch(value) {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => searchOrders(value), 300);
+    }
+
+    function searchOrders(searchTerm) {
+      searchTerm = searchTerm.trim().toLowerCase();
+      const orders = document.querySelectorAll('.order-card');
+      let anyVisible = false;
+      orders.forEach(order => {
+        const orderId = order.querySelector('h3').textContent.toLowerCase();
+        const matches = orderId.includes(searchTerm);
+        order.style.display = matches ? '' : 'none';
+        if (matches) anyVisible = true;
+      });
+      const noOrders = document.querySelector('.no-orders');
+      if (!anyVisible && searchTerm) {
+        if (!noOrders) {
+          const message = document.createElement('p');
+          message.className = 'no-orders';
+          message.textContent = 'No orders found matching your search.';
+          document.querySelector('.orders-section').appendChild(message);
+        }
+      } else if (noOrders && searchTerm) {
+        noOrders.textContent = 'No orders found matching your search.';
+      }
+    }
+
+    function toggleCategorySidebar() {
+      const sidebar = document.getElementById('categorySidebar');
+      const isShown = sidebar.classList.contains('show');
+      sidebar.classList.toggle('show', !isShown);
+      document.body.classList.toggle('body-no-scroll', !isShown);
+    }
+
+    let profileVisible = false;
+    async function toggleProfile() {
+      const dropdown = document.getElementById('profileDropdown');
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        showModal();
+        return;
+      }
+      profileVisible = !profileVisible;
+      dropdown.classList.toggle('show', profileVisible);
+    }
+
+    function showModal() {
+      const modal = document.getElementById('loginModal');
+      modal.style.display = 'flex';
+      document.body.classList.add('body-no-scroll');
+    }
+
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
+      document.body.classList.remove('body-no-scroll');
+    }
+
+    async function logout() {
+      try {
+        const token = localStorage.getItem('accessToken');
+        await apiRequest('post', '/api/users/logout', token);
+      } catch (error) {
+        console.error('Logout error:', error);
+      } finally {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('cart');
+        profileVisible = false;
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) dropdown.classList.remove('show');
+        window.location.href = '/login';
+      }
+    }
+
+    function isUserLoggedIn() {
+      return !!localStorage.getItem('accessToken');
+    }
+
+    function goToCart() {
+      if (!isUserLoggedIn()) {
+        showModal();
+        return;
+      }
+      window.location.href = '/cart';
+    }
+
+    function handleNewsletterSubmit(event) {
+      event.preventDefault();
+      alert('Subscribed successfully!');
+      event.target.reset();
+    }
+
+    window.addEventListener('click', (e) => {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar?.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+      }
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown?.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+        dropdown.classList.remove('show');
+        profileVisible = false;
+      }
+      const modal = document.getElementById('loginModal');
+      if (modal?.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+        modal.style.display = 'none';
+        document.body.classList.remove('body-no-scroll');
+      }
+    });
+
+    document.querySelectorAll('.profile-dropdown button').forEach(el => {
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === 'Space') {
+          e.preventDefault();
+          el.click();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1296,7 +1296,7 @@
       <% categories.slice(0, 6).forEach(category => { %>
         <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" class="category-highlight-link">
           <div class="category-highlight-img">
-            <img src="<%= category.image_uri || 'https://source.unsplash.com/60x60/?plant' %>" alt="<%= category.name %>" loading="lazy" onerror="this.src='https://source.unsplash.com/60x60/?plant'">
+            <img src="<%= category.image_uri  %>" alt="<%= category.name %>" loading="lazy" >
           </div>
           <span><%= category.name %></span>
         </a>
@@ -1319,7 +1319,7 @@
                 <a href="/api/products/productdetails?id=<%= product._id %>">
                   <div class="product-slider">
                     <% product.images.forEach((image, index) => { %>
-                      <img src="<%= image || 'https://source.unsplash.com/200x180/?plant' %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="this.src='https://source.unsplash.com/200x180/?plant'">
+                      <img src="<%= image %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
                     <% }) %>
                   </div>
                 </a>
@@ -1380,7 +1380,7 @@
             <a href="/api/products/productdetails?id=<%= product._id %>">
               <div class="product-slider">
                 <% product.images.forEach((image, index) => { %>
-                  <img src="<%= image || 'https://source.unsplash.com/200x180/?plant' %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="this.src='https://source.unsplash.com/200x180/?plant'">
+                  <img src="<%= image%>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
                 <% }) %>
               </div>
             </a>

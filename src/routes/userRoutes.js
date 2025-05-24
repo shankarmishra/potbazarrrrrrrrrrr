@@ -12,8 +12,8 @@ import {
   resetPassword,
   verifyPhone,
 } from '../controllers/userControllers.js';
-import verifyToken from '../middleware/userMiddleware.js';
-import { requireLogin, requireApiLogin } from '../middleware/userMiddleware.js';
+import verifyToken from '../Middleware/userMiddleware.js';
+import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 
 const router = express.Router();
 

@@ -1,5 +1,6 @@
 import express from 'express';
-import verifyToken, { requireLogin } from '../middleware/userMiddleware.js';
+import verifyToken from '../Middleware/userMiddleware.js';
+import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 import { createTransaction, createOrder, getOrderbyUserId } from '../controllers/orderController.js';
 
 

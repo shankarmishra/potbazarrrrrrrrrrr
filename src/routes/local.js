@@ -1,6 +1,7 @@
 import express from 'express';
 import { showHomePage, getProducts } from '../controllers/productController.js';
-import { requireLogin } from '../middleware/userMiddleware.js'; // Correct casing
+import verifyToken from '../Middleware/userMiddleware.js';
+import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 import Category from '../models/categoryModels.js';
 
 const router = express.Router();

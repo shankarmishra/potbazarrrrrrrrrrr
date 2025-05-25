@@ -10,7 +10,7 @@
     :root {
       --primary-color: #2f855a;
       --secondary-color: #3182ce;
-      --text-color: #333;
+      --text-color: #333;a
       --secondary-text-color: #666;
       --bg-color: #f0f7e7;
       --card-bg: #ffffff;
@@ -30,6 +30,7 @@
       min-height: 100vh;
       scroll-behavior: smooth;
       overflow-x: hidden;
+      scroll-padding-top: 100px;
     }
 
     body {
@@ -392,7 +393,7 @@
     .hero-banner {
       display: flex;
       margin: 20px auto;
-      max-width: 1000px;
+      max-width: 1200px;
       width: 100%;
       border-radius: 15px;
       overflow: hidden;
@@ -401,28 +402,59 @@
 
     .hero-left {
       width: 50%;
-      background-color: #276749;
+      background: linear-gradient(135deg, var(--primary-color), #276749);
       padding: 40px;
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      gap: 2rem;
     }
 
     .hero-left h1 {
-      font-size: 36px;
+      font-size: 3rem;
       font-weight: bold;
-      margin-bottom: 15px;
+      line-height: 1.2;
     }
 
     .hero-left h1 span {
       margin-left: 10px;
-      font-size: 30px;
+      font-size: 2.5rem;
     }
 
     .hero-left p {
-      font-size: 16px;
+      font-size: 1.2rem;
       opacity: 0.9;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .primary-btn, .secondary-btn {
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .primary-btn {
+      background: white;
+      color: var(--primary-color);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    .primary-btn:hover, .secondary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .hero-right {
@@ -437,8 +469,9 @@
     .hero-slider {
       position: relative;
       width: 100%;
-      height: 200px;
+      height: 300px;
       overflow: hidden;
+      border-radius: 12px;
     }
 
     .hero-slider .slide {
@@ -454,89 +487,82 @@
       opacity: 1;
     }
 
-    .hero-slider img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
     .hero-nav {
       position: absolute;
-      bottom: 10px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 8px;
+      gap: 12px;
     }
 
     .hero-nav-dot {
-      width: 10px;
-      height: 10px;
-      background: #ccc;
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.5);
       border-radius: 50%;
       cursor: pointer;
       transition: background 0.3s;
     }
 
     .hero-nav-dot.active {
-      background: var(--primary-color);
+      background: white;
     }
 
     /* Category Highlight Section */
     .category-highlight {
-      padding: 3rem 1rem;
+      padding: 2rem 1rem;
+      background: linear-gradient(to bottom, #f9fafb, #ffffff);
+    }
+
+    .section-header {
       text-align: center;
+      margin-bottom: 2rem;
     }
 
-    .category-highlight h2 {
-      color: var(--primary-color);
+    .section-header h2 {
       font-size: 2rem;
+      color: var(--primary-color);
       margin-bottom: 0.5rem;
-      font-weight: 700;
     }
 
-    .category-highlight-text {
-      font-size: 1.5rem;
-      color: var(--text-color);
-      margin-bottom: 1.5rem;
-    }
-
-    .category-highlight-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
+    .category-container {
       max-width: 1000px;
       margin: 0 auto;
     }
 
-    .category-highlight-link {
-      background: #f7fafc;
+    .category-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .category-card {
+      width: 200px;
+      background: white;
       border-radius: 12px;
-      padding: 1rem;
-      text-decoration: none;
-      transition: background 0.3s;
+      padding: 1.5rem;
       text-align: center;
+      text-decoration: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .category-card h3 {
       color: var(--text-color);
-    }
-
-    .category-highlight-link:hover {
-      background: #e8f5e9;
-    }
-
-    .category-highlight-img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin: 0 auto 0.5rem;
-    }
-
-    .category-highlight-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
+      font-size: 1.1rem;
+      margin: 0;
     }
 
     /* Product Section */
@@ -671,54 +697,172 @@
     }
 
     /* About Section */
-    #about {
-      padding: 4rem 1rem;
-      background: linear-gradient(135deg, #f0f7e7, #ffffff);
+    .about-section {
+      padding: 5rem 2rem;
+      background: linear-gradient(135deg, #f0f7e7 0%, #ffffff 100%);
     }
 
-    .about-content {
-      max-width: 1000px;
+    .about-container {
+      max-width: 1200px;
       margin: 0 auto;
     }
 
-    .about-text h2 {
-      font-size: 2rem;
+    .about-header {
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .about-header h2 {
+      font-size: 2.5rem;
       color: var(--primary-color);
       margin-bottom: 1rem;
     }
 
-    .about-text p {
-      font-size: 1rem;
-      color: var(--secondary-text-color);
+    .header-underline {
+      width: 80px;
+      height: 4px;
+      background: var(--primary-color);
+      margin: 0 auto;
+      border-radius: 2px;
+    }
+
+    .about-content {
+      display: grid;
+      grid-template-columns: 1.5fr 1fr;
+      gap: 4rem;
+      align-items: start;
+    }
+
+    .welcome-text {
+      font-size: 1.2rem;
+      color: var(--primary-color);
+      margin-bottom: 1.5rem;
+      font-weight: 500;
+    }
+
+    .mission-text {
+      font-size: 1.1rem;
+      color: var(--text-color);
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .feature-item {
+      text-align: center;
+      padding: 1.5rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      transition: transform 0.3s ease;
+    }
+
+    .feature-item:hover {
+      transform: translateY(-5px);
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
       margin-bottom: 1rem;
+      display: block;
+    }
+
+    .feature-item h3 {
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .feature-item p {
+      color: var(--secondary-text-color);
+      font-size: 0.9rem;
+      line-height: 1.4;
+    }
+
+    .contact-info {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     }
 
     .contact-info h3 {
+      color: var(--primary-color);
       font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .contact-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+
+    .contact-item .icon {
+      font-size: 1.2rem;
+      color: var(--primary-color);
+    }
+
+    .contact-item p {
+      margin: 0;
       color: var(--text-color);
-      margin-bottom: 0.5rem;
     }
 
-    .social-links a {
-      color: var(--secondary-color);
-      text-decoration: none;
-      margin-right: 1rem;
-      font-size: 1rem;
-      transition: color 0.3s;
+    .contact-item small {
+      display: block;
+      color: var(--secondary-text-color);
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
     }
 
-    .social-links a:hover {
-      color: #1e5a9e;
-    }
-
-    .policy a {
-      color: var(--secondary-color);
+    .contact-item a {
+      color: var(--primary-color);
       text-decoration: none;
       transition: color 0.3s;
     }
 
-    .policy a:hover {
-      color: #1e5a9e;
+    .contact-item a:hover {
+      color: #276749;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #eee;
+    }
+
+    .social-link {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      transition: transform 0.3s ease, background-color 0.3s;
+    }
+
+    .social-link:hover {
+      transform: translateY(-3px);
+      background: #276749;
     }
 
     /* Footer */
@@ -916,43 +1060,53 @@
 
       .hero-banner {
         flex-direction: column;
-        max-width: 100%;
+        margin: 10px;
       }
 
-      .hero-left,
-      .hero-right {
+      .hero-left, .hero-right {
         width: 100%;
-      }
-
-      .hero-left {
-        padding: 20px;
-        min-height: 200px;
+        padding: 30px;
       }
 
       .hero-left h1 {
-        font-size: 28px;
+        font-size: 2.2rem;
       }
 
       .hero-left h1 span {
-        font-size: 24px;
+        font-size: 2rem;
       }
 
       .hero-left p {
-        font-size: 14px;
+        font-size: 1rem;
       }
 
-      .hero-right {
-        padding: 20px;
+      .hero-buttons {
+        flex-direction: column;
       }
 
       .hero-slider {
-        height: 150px;
+        height: 200px;
       }
 
-      .category-box,
-      .all-products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+      .category-highlight {
+        padding: 1.5rem 0.5rem;
+      }
+
+      .section-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .category-card {
+        width: 160px;
+        padding: 1rem;
+      }
+
+      .category-icon {
+        font-size: 2rem;
+      }
+
+      .category-card h3 {
+        font-size: 1rem;
       }
 
       .product-images {
@@ -991,6 +1145,52 @@
       .mobile-only {
         display: block !important;
       }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .feature-item {
+        margin-bottom: 1rem;
+      }
+
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      .product-item {
+        margin-bottom: 1rem;
+      }
+
+      .product-actions {
+        flex-direction: column;
+      }
+
+      .product-actions a,
+      .product-actions button {
+        margin-bottom: 0.5rem;
+      }
+
+      .modal-content {
+        width: 80%;
+        max-width: 300px;
+      }
+
+      .about-section {
+        padding: 3rem 1rem;
+      }
+
+      .about-header h2 {
+        font-size: 2rem;
+      }
+
+      .about-content {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1025,7 +1225,7 @@
       }
 
       .hero-left p {
-        font-size: 12px;
+        font-size: 0.9rem;
       }
 
       .hero-right {
@@ -1036,12 +1236,18 @@
         height: 120px;
       }
 
-      .category-highlight h2 {
-        font-size: 1.5rem;
+      .category-card {
+        width: 140px;
+        padding: 0.75rem;
       }
 
-      .category-highlight-text {
-        font-size: 1.2rem;
+      .category-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .category-card h3 {
+        font-size: 0.9rem;
       }
 
       .product-item {
@@ -1066,6 +1272,20 @@
       .product-actions button {
         padding: 0.4rem;
         font-size: 0.85rem;
+      }
+
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        width: 90%;
+        max-width: 280px;
       }
     }
 
@@ -1135,6 +1355,31 @@
 
     .view-more-btn:hover {
       background: #276749;
+    }
+
+    /* Add smooth scroll behavior to html */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 100px;
+    }
+
+    /* Add transition to sections for better visual feedback */
+    section {
+      scroll-margin-top: 100px;
+    }
+
+    /* Optional: Add highlight effect when scrolled to section */
+    section:target {
+      animation: highlight 1s ease-out;
+    }
+
+    @keyframes highlight {
+      0% {
+        background-color: rgba(47, 133, 90, 0.1);
+      }
+      100% {
+        background-color: transparent;
+      }
     }
   </style>
 </head>
@@ -1275,6 +1520,10 @@
     <div class="hero-left">
       <h1>POTBAZAR<span>🌿</span></h1>
       <p>Explore a world of greenery with POTBAZAR!</p>
+      <div class="hero-buttons">
+        <a href="#category-section" class="primary-btn">Explore Collection</a>
+        <a href="#plants-section" class="secondary-btn">Shop Plants</a>
+      </div>
     </div>
     <div class="hero-right">
       <div class="hero-slider">
@@ -1289,18 +1538,30 @@
   </div>
 
   <!-- Category Highlight Section -->
-  <section class="category-highlight">
-    <h2>Explore Our Categories</h2>
-    <p class="category-highlight-text">Discover Your Perfect Plant!</p>
-    <div class="category-highlight-bar">
-      <% categories.slice(0, 6).forEach(category => { %>
-        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" class="category-highlight-link">
-          <div class="category-highlight-img">
-            <img src="<%= category.image_uri  %>" alt="<%= category.name %>" loading="lazy" >
-          </div>
-          <span><%= category.name %></span>
-        </a>
-      <% }) %>
+  <section class="category-highlight" id="category-section">
+    <div class="section-header">
+      <h2>Explore Our Categories</h2>
+    </div>
+    
+    <div class="category-container">
+      <div class="category-grid">
+        <% const categoryIcons = {
+          'SEEDS': '🌱',
+          'GARDEN ACCESSORIES': '🛠️',
+          'FLOWER BULBS': '🌷',
+          'PLANTS': '🪴'
+        } %>
+        
+        <% categories.forEach(category => { %>
+          <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" 
+             class="category-card">
+            <div class="category-icon">
+              <%= categoryIcons[category.name] || '🌿' %>
+            </div>
+            <h3><%= category.name %></h3>
+          </a>
+        <% }) %>
+      </div>
     </div>
   </section>
 
@@ -1309,53 +1570,48 @@
     const maxProducts = 16; 
   %>
   <% categories.forEach(category => { %>
-    <section class="category" id="cat-<%= category._id %>">
-      <h2><%= category.name %></h2>
-      <% if (category.products && category.products.length > 0) { %>
-        <div class="category-box">
-          <% category.products.slice(0, maxProducts).forEach((product, idx) => { %>
-            <div class="product-item card <%= idx >= 8 ? 'mobile-hidden' : '' %>">
-              <div class="product-images">
-                <a href="/api/products/productdetails?id=<%= product._id %>">
-                  <div class="product-slider">
-                    <% product.images.forEach((image, index) => { %>
-                      <img src="<%= image %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
-                    <% }) %>
-                  </div>
-                </a>
-                <% if (product.images.length > 1) { %>
-                  <div class="product-nav">
-                    <button onclick="prevImage(this)" aria-label="Previous Image">❮</button>
-                    <button onclick="nextImage(this)" aria-label="Next Image">❯</button>
-                  </div>
-                <% } %>
-              </div>
-              <span class="product-category"><%= product.category?.name || 'Category' %></span>
-              <h4><%= product.name %></h4>
-              <p>₹<%= product.price.toFixed(2) %></p>
-              <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
-                <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
-              </p>
-              <div class="product-actions">
-                <a href="/api/products/productdetails?id=<%= product._id %>" aria-label="View details for <%= product.name %>">View Details</a>
-                <a href="javascript:void(0)"
-                   onclick="checkLoginBeforeAction(() => addToCart('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
-                   <%= product.stock === 0 ? 'style="pointer-events:none;opacity:0.5;"' : '' %>
-                   aria-label="Add <%= product.name %> to cart">
-                   Add to Cart
-                </a>
-              </div>
-            </div>
-          <% }) %>
-        </div>
-        <% if (category.products.length > maxProducts) { %>
-          <button class="view-more-btn" onclick="window.location.href='/api/products/products?category=<%= encodeURIComponent(category.name) %>'" aria-label="View more products in <%= category.name %>">View More</button>
-        <% } else if (category.products.length > 8) { %>
-          <button class="view-more-btn mobile-only" onclick="showAllProducts(this)" aria-label="Show all products">View More</button>
+    <section class="category" id="<%= category.name.toLowerCase() === 'plants' ? 'plants-section' : `cat-${category._id}` %>">
+        <% if (category.name.toLowerCase() === 'plants') { %>
+            <h2 class="category-title">Plants</h2>
         <% } %>
-      <% } else { %>
-        <p style="text-align: center; color: var(--secondary-text-color);">No products available in this category.</p>
-      <% } %>
+        <div class="category-box">
+            <% if (category.products && category.products.length > 0) { %>
+                <% category.products.slice(0, maxProducts).forEach((product, idx) => { %>
+                    <div class="product-item card <%= idx >= 8 ? 'mobile-hidden' : '' %>">
+                        <div class="product-images">
+                            <a href="/api/products/productdetails?id=<%= product._id %>">
+                                <div class="product-slider">
+                                    <% product.images.forEach((image, index) => { %>
+                                        <img src="<%= image %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
+                                    <% }) %>
+                                </div>
+                            </a>
+                            <% if (product.images.length > 1) { %>
+                                <div class="product-nav">
+                                    <button onclick="prevImage(this)" aria-label="Previous Image">❮</button>
+                                    <button onclick="nextImage(this)" aria-label="Next Image">❯</button>
+                                </div>
+                            <% } %>
+                        </div>
+                        <span class="product-category"><%= product.category?.name || 'Category' %></span>
+                        <h4><%= product.name %></h4>
+                        <p>₹<%= product.price.toFixed(2) %></p>
+                        <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
+                            <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
+                        </p>
+                        <div class="product-actions">
+                            <a href="/api/products/productdetails?id=<%= product._id %>" aria-label="View details for <%= product.name %>">View Details</a>
+                            <a href="javascript:void(0)"
+                               onclick="checkLoginBeforeAction(() => addToCart('<%= product._id %>', '<%= product.name %>', '<%= product.price %>', '<%= product.images[0] %>', '<%= product.description %>'))"
+                               <%= product.stock === 0 ? 'style="pointer-events:none;opacity:0.5;"' : '' %>
+                               aria-label="Add <%= product.name %> to cart">
+                               Add to Cart
+                            </a>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
     </section>
   <% }) %>
 
@@ -1415,28 +1671,69 @@
   </section>
 
   <!-- About Section -->
-  <section id="about">
-    <div class="about-content">
-      <div class="about-text">
+  <section id="about" class="about-section">
+    <div class="about-container">
+      <div class="about-header">
         <h2>About Us</h2>
-        <p>
-          Welcome to PLANTO, your one-stop destination for all things green. We offer a wide variety of plants, seeds, and fertilizers to help you build your perfect garden. Our team of experts is dedicated to providing you with the highest quality products.
-        </p>
+        <div class="header-underline"></div>
+      </div>
+
+      <div class="about-content">
+        <div class="about-text">
+          <p class="welcome-text">
+            Welcome to POTBAZAR 🌿, your premier destination for all things green and growing. 
+          </p>
+          <p class="mission-text">
+            Our mission is to bring the joy of gardening to every home, offering carefully curated plants, 
+            premium seeds, and top-quality gardening accessories.
+          </p>
+          <div class="features-grid">
+            <div class="feature-item">
+              <span class="feature-icon">🌱</span>
+              <h3>Quality Products</h3>
+              <p>Carefully selected plants and premium gardening supplies</p>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">🚚</span>
+              <h3>Fast Delivery</h3>
+              <p>Safe and quick delivery to your doorstep</p>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon">💚</span>
+              <h3>Expert Support</h3>
+              <p>Dedicated team for plant care guidance</p>
+            </div>
+          </div>
+        </div>
+
         <div class="contact-info">
           <h3>Contact Us</h3>
-          <p><strong>Website:</strong> Potbazar.com</p>
-          <p><strong>Email:</strong> Potbazar014@gmail.com</p>
-          <p><strong>Whatsapp Message:</strong> +91 9760653073 <br><span style="font-size:0.95em;color:#888;">(Do not call, only Whatsapp, 10AM to 6PM, Monday to Saturday)</span></p>
-          <p><strong>Head Office:</strong> Firozabad (Uttar Pradesh)<br>Pin-283145</p>
+          <div class="contact-details">
+            <div class="contact-item">
+              <span class="icon">🌐</span>
+              <p><strong>Website:</strong> <a href="https://potbazar.com" target="_blank">Potbazar.com</a></p>
+            </div>
+            <div class="contact-item">
+              <span class="icon">📧</span>
+              <p><strong>Email:</strong> <a href="mailto:Potbazar014@gmail.com">Potbazar014@gmail.com</a></p>
+            </div>
+            <div class="contact-item">
+              <span class="icon">📱</span>
+              <p><strong>WhatsApp:</strong> <a href="https://wa.me/919760653073">+91 9760653073</a></p>
+              <small>(WhatsApp only, 10AM to 6PM, Monday to Saturday)</small>
+            </div>
+            <div class="contact-item">
+              <span class="icon">📍</span>
+              <p><strong>Head Office:</strong> Firozabad (Uttar Pradesh)<br>Pin-283145</p>
+            </div>
+          </div>
+
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+            <a href="#" class="social-link" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="social-link" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+          </div>
         </div>
-        <div class="social-links" style="margin:18px 0;">
-          <a href="https://www.facebook.com/share/1ACfzA87VW/" target="_blank" rel="noopener">Facebook</a>
-          <a href="https://youtube.com/@homegarden26?si=lZkW419jMM38KXeK" target="_blank" rel="noopener">YouTube</a>
-          <a href="https://www.instagram.com/homegardenyt?utm_source=qr&igsh=NWtidWE4ZHpsbmh4" target="_blank" rel="noopener">Instagram</a>
-        </div>
-        <p class="policy">
-          Read our <a href="/policy">Privacy Policy and return policy</a>
-        </p>
       </div>
     </div>
   </section>
@@ -1803,6 +2100,26 @@
 
   document.getElementById('back-to-top').addEventListener('click', function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+      
+      if (targetElement) {
+        const headerOffset = 100; 
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
   });
   </script>
 </body>

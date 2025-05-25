@@ -1082,6 +1082,255 @@
       position: fixed !important;
       width: 100vw;
     }
+
+    /* Product Grid Improvements */
+    .category-container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .category-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+
+    .category-title {
+      color: var(--primary-color);
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .category-description {
+      color: var(--secondary-text-color);
+      font-size: 1.1rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .filter-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .search-bar-category {
+      flex: 1;
+      max-width: 300px;
+      margin: 0;
+    }
+
+    .sort-select {
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1.5px solid #e2e8f0;
+      background: #f7fafc;
+      color: var(--text-color);
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .sort-select:hover {
+      border-color: var(--primary-color);
+    }
+
+    #categoryProductGrid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 2rem;
+      padding: 1rem 0;
+    }
+
+    .product-item {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.3s, box-shadow 0.3s;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .product-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .product-slider {
+      position: relative;
+      height: 280px;
+      overflow: hidden;
+    }
+
+    .product-slider img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .product-info {
+      padding: 1.5rem;
+    }
+
+    .product-category {
+      color: var(--secondary-text-color);
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .product-name {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-color);
+    }
+
+    .product-price {
+      font-size: 1.1rem;
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .product-stock {
+      display: inline-block;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+
+    .stock-green {
+      background: #e8f5e9;
+      color: var(--primary-color);
+    }
+
+    .stock-red {
+      background: #fee2e2;
+      color: #e53e3e;
+    }
+
+    .product-actions {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .product-actions a,
+    .add-to-cart-btn {
+      flex: 1;
+      padding: 0.8rem;
+      text-align: center;
+      border-radius: 8px;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .product-actions a {
+      background: #f3f4f6;
+      color: var(--text-color);
+      text-decoration: none;
+    }
+
+    .add-to-cart-btn {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .add-to-cart-btn:hover {
+      background: #276749;
+    }
+
+    .add-to-cart-btn:disabled {
+      background: #e2e8f0;
+      cursor: not-allowed;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      .category-container {
+        margin: 1rem auto;
+      }
+
+      .category-title {
+        font-size: 1.8rem;
+      }
+
+      .filter-section {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .search-bar-category {
+        max-width: 100%;
+      }
+
+      #categoryProductGrid {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+
+      .product-slider {
+        height: 220px;
+      }
+
+      .product-info {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .category-title {
+        font-size: 1.5rem;
+      }
+
+      .product-actions {
+        flex-direction: column;
+      }
+
+      .product-slider {
+        height: 180px;
+      }
+    }
+
+    /* Product Navigation Improvements */
+    .product-nav {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      transform: translateY(-50%);
+      display: flex;
+      justify-content: space-between;
+      padding: 0 1rem;
+      pointer-events: none;
+    }
+
+    .product-nav button {
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      width: 35px;
+      height: 35px;
+      border-radius: 50%;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .product-nav button:hover {
+      background: white;
+      transform: scale(1.1);
+    }
   </style>
 </head>
 <body>
@@ -1233,70 +1482,87 @@
 
   <!-- Product Section -->
   <section class="category">
-    <h2>
-      <%= categoryName %>
-      <% if (subCategoryName) { %>
-        <span style="font-size:1.2rem;color:#3498db;">/ <%= subCategoryName %></span>
+    <div class="category-container">
+      <div class="category-header">
+        <h1 class="category-title"><%= categoryName %><% if (subCategoryName) { %> - <%= subCategoryName %><% } %></h1>
+        <p class="category-description">Explore our collection of <%= categoryName.toLowerCase() %></p>
+      </div>
+
+      <div class="filter-section">
+        <input 
+          type="text" 
+          id="categorySearch" 
+          class="search-bar-category" 
+          placeholder="Search in <%= categoryName %>..." 
+          oninput="filterCategoryProducts()"
+        >
+        <select class="sort-select" onchange="sortProducts(this.value)">
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="price-asc">Price (Low to High)</option>
+          <option value="price-desc">Price (High to Low)</option>
+        </select>
+      </div>
+
+      <% if (categoryDescription) { %>
+        <p class="category-highlight-text"><%= categoryDescription %></p>
       <% } %>
-    </h2>
-    <% if (categoryDescription) { %>
-      <p class="category-highlight-text"><%= categoryDescription %></p>
-    <% } %>
-    <% if (products && products.length > 0) { %>
-      <div class="category-box" id="categoryProductGrid">
-        <% products.forEach(product => { %>
-          <div class="product-item" data-name="<%= product.name.toLowerCase() %>" data-price="<%= product.price %>">
-            <div class="product-images">
-              <div class="product-slider">
-                <% if (product.images && product.images.length > 0) { %>
-                  <% product.images.forEach((image, index) => { %>
-                    <img src="<%= image %>" alt="<%= product.name %>" class="slide <%= index === 0 ? 'active' : '' %>" loading="lazy" />
-                  <% }) %>
+      <% if (products && products.length > 0) { %>
+        <div class="category-box" id="categoryProductGrid">
+          <% products.forEach(product => { %>
+            <div class="product-item" data-name="<%= product.name.toLowerCase() %>" data-price="<%= product.price %>">
+              <div class="product-images">
+                <div class="product-slider">
+                  <% if (product.images && product.images.length > 0) { %>
+                    <% product.images.forEach((image, index) => { %>
+                      <img src="<%= image %>" alt="<%= product.name %>" class="slide <%= index === 0 ? 'active' : '' %>" loading="lazy" />
+                    <% }) %>
+                  <% } else { %>
+                    <img src="/images/default-image.jpg" alt="<%= product.name %>" class="slide active" loading="lazy" />
+                  <% } %>
+                  <% if (product.images && product.images.length > 1) { %>
+                    <div class="product-nav">
+                      <button onclick="changeProductSlide(this, -1)">❮</button>
+                      <button onclick="changeProductSlide(this, 1)">❯</button>
+                    </div>
+                  <% } %>
+                </div>
+              </div>
+              <p class="product-category"><%= categoryName %></p>
+              <h4><%= product.name %></h4>
+              <p>₹<%= product.price.toFixed(2) %></p>
+              <p class="product-stock <%= product.stock > 0 ? 'stock-green' : 'stock-red' %>">
+                <%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+              </p>
+              <div class="product-actions">
+                <a href="/api/products/productdetails?id=<%= product._id %>">View Details</a>
+                <% if (user) { %>
+                  <button
+                    type="button"
+                    class="add-to-cart-btn"
+                    data-product-id="<%= product._id %>"
+                    data-product-name="<%= product.name.replace(/"/g, '"') %>"
+                    data-product-price="<%= product.price %>"
+                    data-product-image="<%= (product.images && product.images[0]) ? product.images[0] : '' %>"
+                    data-product-description="<%= (product.description || '').replace(/"/g, '"') %>"
+                    onclick="addToCartHandler(this)"
+                    <%= product.stock === 0 ? 'disabled' : '' %>
+                  >
+                    Add to Cart
+                  </button>
                 <% } else { %>
-                  <img src="/images/default-image.jpg" alt="<%= product.name %>" class="slide active" loading="lazy" />
-                <% } %>
-                <% if (product.images && product.images.length > 1) { %>
-                  <div class="product-nav">
-                    <button onclick="changeProductSlide(this, -1)">❮</button>
-                    <button onclick="changeProductSlide(this, 1)">❯</button>
-                  </div>
+                  <button type="button" class="add-to-cart-btn" onclick="showLoginModal()">Add to Cart</button>
                 <% } %>
               </div>
             </div>
-            <p class="product-category"><%= categoryName %></p>
-            <h4><%= product.name %></h4>
-            <p>₹<%= product.price.toFixed(2) %></p>
-            <p class="product-stock <%= product.stock > 0 ? 'stock-green' : 'stock-red' %>">
-              <%= product.stock > 0 ? 'In Stock' : 'Out of Stock' %>
-            </p>
-            <div class="product-actions">
-              <a href="/api/products/productdetails?id=<%= product._id %>">View Details</a>
-              <% if (user) { %>
-                <button
-                  type="button"
-                  class="add-to-cart-btn"
-                  data-product-id="<%= product._id %>"
-                  data-product-name="<%= product.name.replace(/"/g, '"') %>"
-                  data-product-price="<%= product.price %>"
-                  data-product-image="<%= (product.images && product.images[0]) ? product.images[0] : '' %>"
-                  data-product-description="<%= (product.description || '').replace(/"/g, '"') %>"
-                  onclick="addToCartHandler(this)"
-                  <%= product.stock === 0 ? 'disabled' : '' %>
-                >
-                  Add to Cart
-                </button>
-              <% } else { %>
-                <button type="button" class="add-to-cart-btn" onclick="showLoginModal()">Add to Cart</button>
-              <% } %>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    <% } else { %>
-      <div class="no-categories">
-        <p>No products found in this category.</p>
-      </div>
-    <% } %>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="no-categories">
+          <p>No products found in this category.</p>
+        </div>
+      <% } %>
+    </div>
   </section>
 
   <!-- Footer -->

@@ -4,64 +4,257 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy - PotBazar</title>
+    <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; padding: 20px; }
-        h1 { color: #2c3e50; }
-        p { line-height: 1.6; }
-        a { color: #3498db; text-decoration: none; }
-        a:hover { text-decoration: underline; }
+        :root {
+            --primary-color: #2f855a;
+            --secondary-color: #3182ce;
+            --text-color: #333;
+            --bg-color: #f0f7e7;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to bottom, var(--bg-color), #ffffff);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background: linear-gradient(90deg, var(--primary-color), #276749);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-logo span {
+            margin-left: 8px;
+            font-size: 20px;
+        }
+
+        /* Main Content Styles */
+        .policy-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 2rem 0 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e8f5e9;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+
+        ul {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        a {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        a:hover {
+            color: var(--primary-color);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary-color);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s, background 0.3s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+        }
+
+        .back-to-top:hover {
+            background: #276749;
+        }
+
+        .back-to-home {
+            display: inline-block;
+            margin: 1rem 0;
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 25px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .back-to-home:hover {
+            background: #276749;
+            color: white;
+        }
+
+        .important-notice {
+            background: #e8f5e9;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .policy-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.3rem;
+            }
+
+            p, li {
+                font-size: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Privacy Policy</h1>
-    <p>Welcome to PotBazar! Your privacy is important to us. Please read our policy to understand how we handle your data.</p>
-    
-    <h2>Information Collection</h2>
-    <p>We collect personal data such as name, email, shipping address, and payment details when you make a purchase or sign up for our newsletter.</p>
-    
-    <h2>Purpose of Data Use</h2>
-    <ul>
-        <li>To process and fulfill orders.</li>
-        <li>To send promotional emails and gardening tips.</li>
-        <li>To improve website experience.</li>
-        <li>To comply with legal requirements.</li>
-    </ul>
-    
-    <h2>Data Sharing</h2>
-    <p>We may share data with third parties such as shipping companies, payment processors, and marketing partners, but we do not sell your data without consent.</p>
-    
-    <h2>Cookies and Tracking</h2>
-    <p>We use cookies for website functionality, analytics, and advertising. You can manage cookie preferences through your browser settings.</p>
-    
-    <h2>Data Security</h2>
-    <p>We implement security measures like SSL encryption to protect your data, though no system is 100% secure.</p>
-    
-    <h2>User Rights</h2>
-    <p>You have the right to access, update, or delete your data. Contact us at support@potbazar.com for such requests.</p>
-    
-    <h2>Third-Party Links</h2>
-    <p>Our website may contain links to external sites. Clicking on those means their privacy policies apply, not ours.</p>
-    
-    <h2>Changes to Policy</h2>
-    <p>We may update this policy anytime. Continued use of our site implies acceptance of changes.</p>
-    
-    <h2>Returns & Refund Policy for Plants</h2>
-    <p>
-      Please note that <strong>plants are living products</strong> and are <strong>not eligible for return or exchange</strong> once purchased and delivered. This policy is in place because:
-    </p>
-    <ul>
-      <li>Plants are sensitive to changes in environment, handling, and care after leaving our facility.</li>
-      <li>We ensure all plants are healthy and well-cared for before shipping.</li>
-      <li>Responsibility for plant care passes to the customer upon delivery.</li>
-      <li>Plants are perishable and their condition can change quickly.</li>
-    </ul>
-    <p>
-      <strong>Exceptions:</strong> If your plant arrives damaged or unhealthy, please contact us within 24 hours of delivery with photos. We will review your case and may offer a replacement or refund at our discretion.
-    </p>
-    <p>
-      For any questions about plant care or our policies, please contact us at <a href="mailto:Potbazar014@gmail.com">Potbazar014@gmail.com</a> or WhatsApp: +91 9760653073 (10AM to 6PM, Monday to Saturday).
-    </p>
-    
-    <p>For more details, visit our website: <a href="https://www.potbazar.com" target="_blank">www.potbazar.com</a></p>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/" class="nav-logo">
+            POTBAZAR<span>🌿</span>
+        </a>
+    </nav>
+
+    <div class="policy-container">
+        <a href="/" class="back-to-home">← Back to Home</a>
+        
+        <h1>Privacy Policy</h1>
+        <p>Welcome to PotBazar! Your privacy is important to us. Please read our policy to understand how we handle your data.</p>
+        
+        <h2>Information Collection</h2>
+        <p>We collect personal data such as name, email, shipping address, and payment details when you make a purchase or sign up for our newsletter.</p>
+        
+        <h2>Purpose of Data Use</h2>
+        <ul>
+            <li>To process and fulfill orders.</li>
+            <li>To send promotional emails and gardening tips.</li>
+            <li>To improve website experience.</li>
+            <li>To comply with legal requirements.</li>
+        </ul>
+        
+        <h2>Data Sharing</h2>
+        <p>We may share data with third parties such as shipping companies, payment processors, and marketing partners, but we do not sell your data without consent.</p>
+        
+        <h2>Cookies and Tracking</h2>
+        <p>We use cookies for website functionality, analytics, and advertising. You can manage cookie preferences through your browser settings.</p>
+        
+        <h2>Data Security</h2>
+        <p>We implement security measures like SSL encryption to protect your data, though no system is 100% secure.</p>
+        
+        <h2>User Rights</h2>
+        <p>You have the right to access, update, or delete your data. Contact us at support@potbazar.com for such requests.</p>
+        
+        <h2>Third-Party Links</h2>
+        <p>Our website may contain links to external sites. Clicking on those means their privacy policies apply, not ours.</p>
+        
+        <h2>Changes to Policy</h2>
+        <p>We may update this policy anytime. Continued use of our site implies acceptance of changes.</p>
+        
+        <h2>Returns & Refund Policy for Plants</h2>
+        <div class="important-notice">
+            <p><strong>Important:</strong> Plants are living products and are not eligible for return or exchange once purchased and delivered.</p>
+        </div>
+        <ul>
+            <li>Plants are sensitive to changes in environment, handling, and care after leaving our facility.</li>
+            <li>We ensure all plants are healthy and well-cared for before shipping.</li>
+            <li>Responsibility for plant care passes to the customer upon delivery.</li>
+            <li>Plants are perishable and their condition can change quickly.</li>
+        </ul>
+        
+        <h2>Exceptions</h2>
+        <p>If your plant arrives damaged or unhealthy, please contact us within 24 hours of delivery with photos. We will review your case and may offer a replacement or refund at our discretion.</p>
+        
+        <p>For any questions about plant care or our policies, please contact us at <a href="mailto:Potbazar014@gmail.com">Potbazar014@gmail.com</a> or WhatsApp: +91 9760653073 (10AM to 6PM, Monday to Saturday).</p>
+        
+        <a href="/" class="back-to-home">← Back to Home</a>
+    </div>
+
+    <a href="#" class="back-to-top" id="backToTop">↑</a>
+
+    <script>
+        // Back to top button functionality
+        const backToTop = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('show');
+            } else {
+                backToTop.classList.remove('show');
+            }
+        });
+
+        backToTop.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
 </body>
 </html>

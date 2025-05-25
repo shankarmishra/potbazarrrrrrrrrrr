@@ -87,18 +87,7 @@ app.use(async (req, res, next) => {
 });
 
 // Check login route
-app.get('/check-login', (req, res) => {
-  if (req.session && req.session.userId) return res.json({ loggedIn: true });
-  const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    const token = authHeader.split(' ')[1];
-    try {
-      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      if (decoded) return res.json({ loggedIn: true });
-    } catch (e) {}
-  }
-  return res.json({ loggedIn: false });
-});
+
 
 // Register Routes
 app.use('/admin', adminRoutes);

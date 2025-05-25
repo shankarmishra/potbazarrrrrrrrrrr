@@ -1,79 +1,67 @@
 import express from 'express';
-import multer from 'multer';
 import {
-    adminLogin,
-    adminForgotPassword,
-    adminResetPassword,
-    adminRegister,
-    getAdminDashboard,
-    getAdminOrders,
-    getAdminUsers,
-    createCategory,
-    adminLogout
+  adminLogin,
+  adminRegister,
+  adminForgotPassword,
+  adminResetPassword,
+  getAdminDashboard,
+  getAdminProducts,
+  getAdminProductEdit,
+  getAdminOrders,
+  getAdminUsers,
+  createCategory,
+  adminLogout,
+  createSubcategory // <-- Add this import
 } from '../controllers/adminController.js';
-import adminAuthMiddleware from '../Middleware/adminAuthMiddleware.js';
 import {
-    getAdminProducts,
-    createProduct,
-    showEditProduct,
-    editProduct,
-    deleteProduct
+  createProduct,
+  deleteProduct
 } from '../controllers/productController.js';
+
+import { verifyAdmin } from '../Middleware/adminAuthMiddleware.js';
+
+// Add these imports for rendering the subcategory page
+import Category from '../models/categoryModels.js';
 import Subcategory from '../models/Subcategorymodel.js';
 
 const router = express.Router();
-const upload = multer({ dest: 'public/uploads/product_images/' });
 
-// ----------- Public Admin Routes -----------
-router.get('/login', (req, res) => {
-    res.render('admin/adminlogin', { error: null, success: null });
-});
+// Public Admin Routes
+router.get('/login', (req, res) => res.render('admin/adminlogin', { error: null, success: null }));
 router.post('/login', adminLogin);
-
-router.get('/register', (req, res) => {
-    res.render('admin/adminregister', { error: null, success: null });
-});
+router.get('/register', (req, res) => res.render('admin/adminregister', { error: null, success: null }));
 router.post('/register', adminRegister);
-
-router.get('/forgot-password', (req, res) => {
-    res.render('admin/adminforgotpassword', { error: null });
-});
+router.get('/forgot-password', (req, res) => res.render('admin/adminforgotpassword', { error: null, success: null }));
 router.post('/forgot-password', adminForgotPassword);
-
+router.get('/reset-password', (req, res) => res.render('admin/adminresetpassword', { error: null, success: null }));
 router.post('/reset-password', adminResetPassword);
 
-// ----------- Protected Admin Routes -----------
-router.use(adminAuthMiddleware); // Protect all routes below
+// Protected Admin Routes
+router.get('/dashboard', verifyAdmin, getAdminDashboard);
+router.get('/products', verifyAdmin, getAdminProducts);
+router.get('/product/edit/:id', verifyAdmin, getAdminProductEdit);
+router.get('/orders', verifyAdmin, getAdminOrders);
+router.get('/users', verifyAdmin, getAdminUsers);
+router.get('/category/create', verifyAdmin, (req, res) => res.render('admin/categoryCreate', { error: null, success: null }));
+router.post('/category/create', verifyAdmin, createCategory);
+router.get('/logout', verifyAdmin, adminLogout);
 
-router.get('/dashboard', getAdminDashboard);
-router.get('/orders', getAdminOrders);
-router.get('/users', getAdminUsers);
-router.post('/categories', createCategory);
+// ----------- Subcategory Routes -----------
 
-// Product Management (Admin)
-router.get('/products', getAdminProducts); // Show add product form + list
-router.post('/products/add', upload.array('images', 5), createProduct);
-router.get('/products/edit/:id', showEditProduct);
-router.post('/products/edit/:id', upload.array('images', 5), editProduct);
-router.delete('/products/delete/:id', deleteProduct);
-
-// Subcategory Routes (AJAX for dynamic dropdowns, etc.)
-router.get('/subcategories/:categoryId', async (req, res) => {
-    try {
-        const subs = await Subcategory.find({ category: req.params.categoryId });
-        res.json(subs);
-    } catch (err) {
-        res.status(500).json([]);
-    }
+// Render subcategory creation page
+router.get('/category/subcategory/add', verifyAdmin, async (req, res) => {
+  const categories = await Category.find();
+  const subcategories = await Subcategory.find().populate('category');
+  res.render('admin/subcategory', {
+    isAdmin: true,
+    categories, // your categories array
+    subcategories, // your subcategories array
+    subcategoryError: null,
+    subcategorySuccess: null
+  });
 });
 
-// Admin Logout
-router.get('/logout', adminLogout);
-
-// Optional: Cache control for admin routes
-// router.use((req, res, next) => {
-//   res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-//   next();
-// });
+// Handle subcategory creation
+router.post('/api/category/subcategory/add', verifyAdmin, createSubcategory);
 
 export default router;

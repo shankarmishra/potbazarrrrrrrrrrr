@@ -6,6 +6,7 @@ import Order from '../models/orderModels.js';
 import Admin from '../models/adminmodel.js';
 import Category from '../models/categoryModels.js';
 import User from '../models/userModels.js';
+import Subcategory from '../models/Subcategorymodel.js'; // Import at the top
 
 dotenv.config();
 
@@ -14,18 +15,24 @@ export const adminLogin = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
-      return res.status(401).render('admin/adminlogin', { error: 'Invalid email or password', success: null });
+      return res.status(401).render('admin/adminlogin', {
+        error: 'Invalid email or password',
+        success: null,
+      });
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, admin.password);
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
     if (!isPasswordValid) {
-      return res.status(401).render('admin/adminlogin', { error: 'Invalid email or password', success: null });
+      return res.status(401).render('admin/adminlogin', {
+        error: 'Invalid email or password',
+        success: null,
+      });
     }
 
     const token = jwt.sign(
-      { id: admin._id, email, role: 'admin' },
+      { id: admin._id, email: admin.email, role: 'admin' },
       process.env.JWT_SECRET || 'default_jwt_secret',
       { expiresIn: '1d' }
     );
@@ -33,8 +40,11 @@ export const adminLogin = async (req, res) => {
     res.cookie('adminToken', token, { httpOnly: true });
     res.redirect('/admin/dashboard');
   } catch (error) {
-    console.error('❌ Error during admin login:', error);
-    res.status(500).render('admin/adminlogin', { error: 'Server error during login', success: null });
+    console.error('❌ Admin Login Error:', error);
+    res.status(500).render('admin/adminlogin', {
+      error: 'Server error during login',
+      success: null,
+    });
   }
 };
 
@@ -45,22 +55,39 @@ export const adminRegister = async (req, res) => {
   try {
     const adminCount = await Admin.countDocuments();
     if (adminCount >= 5) {
-      return res.status(403).render('admin/adminregister', { error: 'Admin limit reached.', success: null });
+      return res.status(403).render('admin/adminregister', {
+        error: 'Admin limit reached.',
+        success: null,
+      });
     }
 
-    const existingAdmin = await Admin.findOne({ email });
+    const existingAdmin = await Admin.findOne({ email: email.toLowerCase() });
     if (existingAdmin) {
-      return res.status(400).render('admin/adminregister', { error: 'Admin already exists.', success: null });
+      return res.status(400).render('admin/adminregister', {
+        error: 'Admin already exists.',
+        success: null,
+      });
     }
 
-    const hashedPassword = bcrypt.hashSync(password, 10);
-    const newAdmin = new Admin({ email, password: hashedPassword, phone, address });
-    await newAdmin.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const newAdmin = new Admin({
+      email: email.toLowerCase(),
+      password: hashedPassword,
+      phone,
+      address,
+    });
 
-    res.status(201).render('admin/adminlogin', { success: 'Admin registered. Please log in.', error: null });
+    await newAdmin.save();
+    res.status(201).render('admin/adminlogin', {
+      success: 'Admin registered. Please log in.',
+      error: null,
+    });
   } catch (error) {
-    console.error('❌ Error during admin registration:', error);
-    res.status(500).render('admin/adminregister', { error: 'Server error during registration', success: null });
+    console.error('❌ Admin Registration Error:', error);
+    res.status(500).render('admin/adminregister', {
+      error: 'Server error during registration',
+      success: null,
+    });
   }
 };
 
@@ -69,16 +96,25 @@ export const adminForgotPassword = async (req, res) => {
   const { email } = req.body;
 
   try {
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
-      return res.status(404).render('admin/adminforgotpassword', { error: 'Admin not found', success: null });
+      return res.status(404).render('admin/adminforgotpassword', {
+        error: 'Admin not found',
+        success: null,
+      });
     }
 
-    console.log(`📧 Password reset link sent to ${email}`);
-    res.render('admin/adminforgotpassword', { success: 'Reset link sent to your email.', error: null });
+    console.log(`📧 Reset link sent to: ${email}`);
+    res.render('admin/adminforgotpassword', {
+      success: 'Reset link sent to your email.',
+      error: null,
+    });
   } catch (error) {
-    console.error('❌ Error during forgot password:', error);
-    res.status(500).render('admin/adminforgotpassword', { error: 'Server error during forgot password', success: null });
+    console.error('❌ Forgot Password Error:', error);
+    res.status(500).render('admin/adminforgotpassword', {
+      error: 'Server error during forgot password',
+      success: null,
+    });
   }
 };
 
@@ -87,18 +123,29 @@ export const adminResetPassword = async (req, res) => {
   const { email, newPassword } = req.body;
 
   try {
-    const admin = await Admin.findOne({ email });
+    const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
-      return res.status(404).render('admin/adminresetpassword', { error: 'Admin not found', email, success: null });
+      return res.status(404).render('admin/adminresetpassword', {
+        error: 'Admin not found',
+        email,
+        success: null,
+      });
     }
 
-    admin.password = bcrypt.hashSync(newPassword, 10);
+    admin.password = await bcrypt.hash(newPassword, 10);
     await admin.save();
 
-    res.render('admin/adminlogin', { success: 'Password reset. Please log in.', error: null });
+    res.render('admin/adminlogin', {
+      success: 'Password reset. Please log in.',
+      error: null,
+    });
   } catch (error) {
-    console.error('❌ Error during reset password:', error);
-    res.status(500).render('admin/adminresetpassword', { error: 'Server error during password reset', email, success: null });
+    console.error('❌ Reset Password Error:', error);
+    res.status(500).render('admin/adminresetpassword', {
+      error: 'Server error during password reset',
+      email,
+      success: null,
+    });
   }
 };
 
@@ -108,17 +155,16 @@ export const getAdminDashboard = async (req, res) => {
     const totalProducts = await Product.countDocuments();
     const totalOrders = await Order.countDocuments();
     const totalUsers = await User.countDocuments();
-    // Example: totalTransactions is the same as totalOrders, or calculate as needed
     const totalTransactions = totalOrders;
 
     res.render('admin/dashboard', {
+      isAdmin: true,
       totalProducts,
       totalOrders,
       totalUsers,
-      totalTransactions, // Pass this to the view
     });
   } catch (error) {
-    console.error('❌ Error rendering admin dashboard:', error);
+    console.error('❌ Dashboard Load Error:', error);
     res.status(500).send('Server Error');
   }
 };
@@ -128,10 +174,17 @@ export const getAdminProducts = async (req, res) => {
   try {
     const categories = await Category.find();
     const products = await Product.find().populate('category');
-    res.render('admin/addProduct', { categories, products, error: null, success: null, editProduct: null });
+    res.render('admin/addProduct', {
+      isAdmin: true,
+      categories,
+      products,
+      editProduct: null,
+      error: null,
+      success: null,
+    });
   } catch (error) {
-    console.error('❌ Error fetching products:', error);
-    res.status(500).send('Server error');
+    console.error('❌ Fetching Products Error:', error);
+    res.status(500).send('Server Error');
   }
 };
 
@@ -143,8 +196,8 @@ export const getAdminProductEdit = async (req, res) => {
 
     res.render('admin/productEdit', { product });
   } catch (error) {
-    console.error('❌ Error fetching product:', error);
-    res.status(500).send('Server error');
+    console.error('❌ Product Edit Fetch Error:', error);
+    res.status(500).send('Server Error');
   }
 };
 
@@ -152,10 +205,14 @@ export const getAdminProductEdit = async (req, res) => {
 export const getAdminOrders = async (req, res) => {
   try {
     const orders = await Order.find();
-    res.render('admin/orderList', { orders });
+    res.render('admin/orderList', {
+      isAdmin: true,
+      orders, // your orders array
+      // ...any other variables
+    });
   } catch (error) {
-    console.error('❌ Error fetching orders:', error);
-    res.status(500).send('Server error');
+    console.error('❌ Orders Fetch Error:', error);
+    res.status(500).send('Server Error');
   }
 };
 
@@ -163,10 +220,13 @@ export const getAdminOrders = async (req, res) => {
 export const getAdminUsers = async (req, res) => {
   try {
     const users = await User.find();
-    res.render('admin/userList', { users });
+    res.render('admin/userList', {
+      isAdmin: true,
+      users // your users array
+    });
   } catch (error) {
-    console.error('❌ Error fetching users:', error);
-    res.status(500).send('Server error');
+    console.error('❌ Users Fetch Error:', error);
+    res.status(500).send('Server Error');
   }
 };
 
@@ -175,18 +235,69 @@ export const createCategory = async (req, res) => {
   const { name } = req.body;
 
   try {
-    const existing = await Category.findOne({ name });
+    const existing = await Category.findOne({ name: name.trim() });
     if (existing) {
-      return res.render('admin/categoryCreate', { error: 'Category already exists', success: null });
+      return res.render('admin/categoryCreate', {
+        error: 'Category already exists',
+        success: null,
+      });
     }
 
-    const newCategory = new Category({ name });
+    const newCategory = new Category({ name: name.trim() });
     await newCategory.save();
 
-    res.render('admin/categoryCreate', { success: 'Category created successfully', error: null });
+    res.render('admin/categoryCreate', {
+      success: 'Category created successfully',
+      error: null,
+    });
   } catch (error) {
-    console.error('❌ Error creating category:', error);
-    res.status(500).render('admin/categoryCreate', { error: 'Server error', success: null });
+    console.error('❌ Create Category Error:', error);
+    res.status(500).render('admin/categoryCreate', {
+      error: 'Server error',
+      success: null,
+    });
+  }
+};
+
+// Admin Create Subcategory
+export const createSubcategory = async (req, res) => {
+  const { name, description, category } = req.body;
+  try {
+    // Check for duplicate
+    const exists = await Subcategory.findOne({ name: name.trim(), category });
+    if (exists) {
+      const categories = await Category.find();
+      const subcategories = await Subcategory.find().populate('category');
+      return res.render('admin/subcategory', {
+        isAdmin: true,
+        categories,
+        subcategories,
+        subcategoryError: 'Subcategory already exists for this category.',
+        subcategorySuccess: null
+      });
+    }
+    const newSubcat = new Subcategory({ name: name.trim(), description, category });
+    await newSubcat.save();
+    const categories = await Category.find();
+    const subcategories = await Subcategory.find().populate('category');
+    res.render('admin/subcategory', {
+      isAdmin: true,
+      categories,
+      subcategories,
+      subcategoryError: null,
+      subcategorySuccess: 'Subcategory created successfully!'
+    });
+  } catch (error) {
+    console.error('❌ Create Subcategory Error:', error);
+    const categories = await Category.find();
+    const subcategories = await Subcategory.find().populate('category');
+    res.render('admin/subcategory', {
+      isAdmin: true,
+      categories,
+      subcategories,
+      subcategoryError: 'Server error',
+      subcategorySuccess: null
+    });
   }
 };
 

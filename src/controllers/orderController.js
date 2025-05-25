@@ -101,14 +101,13 @@ const createTransaction = asyncHandler(async (req, res) => {
 
     try {
         const options = {
-            amount: Math.round(amount * 100), // Convert to paise
+            amount: Math.round(amount * 100), // amount in paise
             currency: "INR",
-            receipt: `receipt_${Date.now()}_${userId}`,
+            receipt: `rcpt_${Date.now()}_${String(userId).slice(-6)}`,
             notes: {
                 userId: userId.toString()
             }
         };
-
         const razorpayOrder = await razorpay.orders.create(options);
         
         res.status(200).json({

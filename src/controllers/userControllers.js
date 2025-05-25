@@ -160,24 +160,19 @@ const login = async (req, res) => {
       });
     }
 
-    const { accessToken, refreshToken } = generateTokens(user._id);
-    await User.findByIdAndUpdate(user._id, { refreshToken });
-
-    if (req.headers['user-agent']?.includes('Mozilla')) {
-      res.cookie('token', accessToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 20 * 24 * 60 * 60 * 1000
-      });
-    }
+    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
+    res.cookie('token', token, {
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    });
 
     // Only send token and success, do not send user data
     return res.status(200).json({
       success: true,
       message: 'Login successful',
-      token: accessToken,
-      refreshToken
+      token
     });
   } catch (error) {
     console.error('Login error:', error);
@@ -266,6 +261,7 @@ const getProfile = async (req, res) => {
   try {
     const userId = req.user?.id;
     if (!userId) {
+      console.error('No userId in req.user:', req.user);
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'

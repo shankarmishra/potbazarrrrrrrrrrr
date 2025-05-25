@@ -6,11 +6,10 @@ import {
   logout,
   getProfile,
   editProfile,
-  // forgotPassword,
-  // resetPassword,
   // verifyPhone,
 } from '../controllers/userControllers.js';
-import { verifyToken, requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
+
+import authMiddleware from '../Middleware/userMiddleware.js';
 
 const router = express.Router();
 
@@ -18,59 +17,33 @@ const router = express.Router();
 const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
 const MAX_REQUESTS_PER_WINDOW = 5;
 
-// Rate limiters
+// Rate limiter for auth
 const authLimiter = rateLimit({
   windowMs: RATE_LIMIT_WINDOW,
   max: MAX_REQUESTS_PER_WINDOW,
   message: 'Too many requests from this IP, please try again later.',
-  skip: (req) => process.env.NODE_ENV === 'test' // Skip during tests
-});
-
-const passwordResetLimiter = rateLimit({
-  windowMs: RATE_LIMIT_WINDOW,
-  max: 3, // More strict for password reset
-  message: 'Too many password reset attempts, please try again later.'
+  skip: (req) => process.env.NODE_ENV === 'test'
 });
 
 /** ---------- Public Routes ---------- **/
 
-// User authentication routes
+// Register & Login
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
 
-// Password management
-// // router.post('/forgot-password', passwordResetLimiter, forgotPassword);
-// router.post('/reset-password', resetPassword);
-
-// Phone verification
-// router.post('/verify-phone', verifyPhone);
-
-// Policy page
+// Privacy Policy
 router.get('/policy', (req, res) => {
-  res.render('policy', { 
+  res.render('policy', {
     title: 'Privacy Policy',
-    currentYear: new Date().getFullYear() 
+    currentYear: new Date().getFullYear()
   });
 });
 
-/** ---------- Protected API Routes (Token-based) ---------- **/
-const apiRoutes = express.Router();
-
-apiRoutes.use(verifyToken); // All API routes require token verification
-
-apiRoutes.get('/profile', getProfile);
-apiRoutes.put('/profile', editProfile);
-
-router.use('/api', apiRoutes); // Mount under /api prefix
-
-/** ---------- Protected Web Routes (Session-based) ---------- **/
+/** ---------- Web Routes (NO session-based protection) ---------- **/
 const webRoutes = express.Router();
 
-webRoutes.use(requireLogin); // All web routes require session
-
-webRoutes.get('/profile', getProfile);
 webRoutes.get('/', (req, res) => {
-  res.render('home', { 
+  res.render('home', {
     user: res.locals.user,
     currentYear: new Date().getFullYear()
   });
@@ -78,20 +51,27 @@ webRoutes.get('/', (req, res) => {
 
 router.use(webRoutes);
 
-/** ---------- Hybrid Routes (API/Web) ---------- **/
+/** ---------- Shared Routes (Hybrid API/Web) ---------- **/
 
-// Logout (works for both API and web)
+// Logout (token/cookie both supported)
 router.post('/logout', logout);
 
-// Profile API endpoint (works with both token and session)
+// Profile route supporting API and Web
 router.get('/profile-api', (req, res, next) => {
-  // Check if it's an API request
-  if (req.headers['content-type'] === 'application/json' || 
-      req.headers['accept'].includes('application/json')) {
-    return verifyToken(req, res, next);
+  const isApiRequest =
+    req.headers['content-type'] === 'application/json' ||
+    req.headers['accept']?.includes('application/json');
+
+  // REMOVE requireLogin, only use authMiddleware for API
+  if (isApiRequest) {
+    return authMiddleware(req, res, next);
+  } else {
+    return next();
   }
-  // Otherwise treat as web request
-  return requireLogin(req, res, next);
 }, getProfile);
+
+// Directly add the protected routes to the main router
+router.get('/profile', authMiddleware, getProfile);
+router.put('/profile', authMiddleware, editProfile);
 
 export default router;

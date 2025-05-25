@@ -1,25 +1,22 @@
 import express from 'express';
 import { getProducts, getProductDetails, submitReview } from '../controllers/productController.js';
-import verifyToken from '../Middleware/userMiddleware.js';
-import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
+import authMiddleware from '../Middleware/userMiddleware.js'; // Token-based
 import Product from '../models/productModels.js';
 
 const router = express.Router();
 
-// Route to fetch products by category (public)
+/** ---------- Public Routes ---------- **/
+
+// Get products by category
 router.get('/products/:categoryId', getProducts);
 
-// Route to fetch product details by ID (public)
-router.get('/productdetails', getProductDetails);
-
-// Route to submit a review (protected, session-based login)
-router.post('/submit-review', requireLogin, submitReview);
-router.post('/api/submit-review', verifyToken, submitReview);
-
-// Route to fetch products with optional subcategory (public)
+// Get all products or by subcategory
 router.get('/products', getProducts);
 
-// Route to fetch stock for a product by ID (public)
+// Get product details
+router.get('/productdetails', getProductDetails);
+
+// Get stock for product by ID
 router.get('/product/stock/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id).select('stock');
@@ -32,7 +29,12 @@ router.get('/product/stock/:id', async (req, res) => {
   }
 });
 
-// Handle invalid routes for this module
+/** ---------- Protected Routes ---------- **/
+
+// Submit review (JWT/cookie protected)
+router.post('/submit-review', authMiddleware, submitReview);
+
+/** ---------- 404 Fallback for Invalid Product Routes ---------- **/
 router.use((req, res) => {
   res.status(404).json({
     success: false,

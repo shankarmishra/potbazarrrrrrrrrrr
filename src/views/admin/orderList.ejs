@@ -8,8 +8,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <%- include('../components/Navbar') %>
-  <%- include('../components/Sidebar') %>
+   <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+    <%- include('../components/Navbar') %>
+  <% } %>
 
   <h1>Order List</h1>
 

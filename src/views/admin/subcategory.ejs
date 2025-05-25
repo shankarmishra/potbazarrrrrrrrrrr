@@ -148,12 +148,14 @@
   </style>
 </head>
 <body>
-  <%- include('../components/Navbar') %>
+ <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+    <%- include('../components/Navbar') %>
+  <% } %>
 
   <div class="form-container">
     <h2>Add Subcategory</h2>
 
-    <form action="/api/category/subcategory/add" method="POST">
+    <form action="/category/subcategory/add" method="POST">
       <label for="name">Subcategory Name</label>
       <input type="text" name="name" id="name" required />
 
@@ -205,7 +207,7 @@
               </td>
               <td><%= subcat.description || '—' %></td>
               <td>
-                <form class="delete-form" action="/api/category/subcategory/delete/<%= subcat._id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this subcategory?');">
+                <form class="delete-form" action="/category/subcategory/delete/<%= subcat._id %>" method="POST" onsubmit="return confirm('Are you sure you want to delete this subcategory?');">
                   <button type="submit">Delete</button>
                 </form>
               </td>

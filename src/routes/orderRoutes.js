@@ -1,45 +1,54 @@
 import express from 'express';
-import verifyToken from '../Middleware/userMiddleware.js';
-import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
-import { createTransaction, createOrder, getOrderbyUserId } from '../controllers/orderController.js';
-
+import authMiddleware from '../Middleware/userMiddleware.js'; // Token-based
+import {
+  createTransaction,
+  createOrder,
+  getOrderbyUserId
+} from '../controllers/orderController.js';
 
 const router = express.Router();
 
 // Async error handling wrapper
 const asyncHandler = (fn) => (req, res, next) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+  Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Create a transaction (protected)
-router.post('/transaction', requireLogin, createTransaction);
+/** ---------- Protected Routes (Token-based) ---------- **/
 
-// Create an order (protected)
-router.post('/', verifyToken, asyncHandler(createOrder));
+// Create a transaction (token-protected)
+router.post('/transaction', authMiddleware, asyncHandler(createTransaction));
 
-// Get orders by user ID (protected)
-router.get('/user/:userId', verifyToken, asyncHandler(getOrderbyUserId));
+// Create an order (token-protected)
+router.post('/', authMiddleware, asyncHandler(createOrder));
 
-// Checkout page (session/EJS, not protected by JWT)
+// Get orders by user ID (token-protected)
+router.get('/user/:userId', authMiddleware, asyncHandler(getOrderbyUserId));
+
+/** ---------- Public View Route ---------- **/
+
+// Checkout page (EJS view, public)
 router.get('/checkoutpage', (req, res) => {
-    res.render('checkoutpage');
+  res.render('checkoutpage');
 });
 
-// Global error handling middleware
+/** ---------- Global Error Handling ---------- **/
+
+// Centralized error handler
 router.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(err.statusCode || 500).json({
-        success: false,
-        message: err.message || 'Internal Server Error',
-    });
+  console.error('Order route error:', err.stack);
+  res.status(err.statusCode || 500).json({
+    success: false,
+    message: err.message || 'Internal Server Error',
+  });
 });
 
-// Handle invalid routes for this module
+/** ---------- 404 Fallback ---------- **/
+
 router.use((req, res) => {
-    res.status(404).json({
-        success: false,
-        message: 'Order route not found',
-    });
+  res.status(404).json({
+    success: false,
+    message: 'Order route not found',
+  });
 });
 
 export default router;

@@ -968,14 +968,13 @@
             };
         }
 
-        async function apiRequest(method, url, data, token) {
+        async function apiRequest(method, url, data) {
             try {
-                const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
                 const response = await axios.request({
                     method,
                     url: `${API_BASE_URL}${url}`,
                     data,
-                    headers,
+                    withCredentials: true // send cookies!
                 });
                 return response.data;
             } catch (error) {
@@ -1118,8 +1117,7 @@
                     const deliveryCharge = cartItems.length ? 79 : 0;
                     const totalAmount = subtotal + deliveryCharge;
 
-                    // --- FIX: Robust user data check ---
-                    const userData = await apiRequest('get', '/api/users/profile', null, token);
+                    const userData = await apiRequest('get', '/api/users/profile');
                     const userObj = userData.data || userData.user || userData;
                     if (!userObj || !userObj._id) {
                         throw new Error('Invalid user data received. Please log in again.');
@@ -1130,12 +1128,12 @@
                         userId: userObj._id
                     }, token);
 
-                    if (transactionData.success) {
+                    if (transactionData.success && transactionData.data) {
                         const options = {
-                            key: transactionData.key,
-                            amount: transactionData.amount,
-                            currency: transactionData.currency,
-                            order_id: transactionData.orderId,
+                            key: transactionData.data.key,        // ✅ Correct!
+                            amount: transactionData.data.amount,
+                            currency: transactionData.data.currency,
+                            order_id: transactionData.data.orderId,
                             name: 'PLANTO Store',
                             description: 'Purchase from PLANTO',
                             handler: async function (razorpayResponse) {
@@ -1183,6 +1181,16 @@
                 }
             });
         };
+
+        // Example: Get user data and check login
+async function getUserData() {
+    const res = await fetch('/check-login', { credentials: 'include' });
+const data = await res.json();
+const userObj = data.user;
+if (!data.loggedIn || !userObj || !userObj.id) {
+    throw new Error('Invalid user data received. Please log in again.');
+}
+}
 
         function checkLoginBeforeAction(actionCallback) {
             fetch('/check-login')

@@ -384,7 +384,9 @@
   </style>
 </head>
 <body>
-  <%- include('../components/Navbar') %>
+  <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
+    <%- include('../components/Navbar') %>
+  <% } %>
 
   <div class="form-container">
     <div class="form-header">
@@ -392,7 +394,7 @@
     </div>
 
     <form
-      action="<%= editProduct ? '/admin/products/edit/' + editProduct._id : '/admin/products/add' %>"
+      action="<%= editProduct ? '/category/products/edit/' + editProduct._id : '/category/products/add' %>"
       method="POST"
       enctype="multipart/form-data"
       id="productForm"
@@ -568,8 +570,7 @@
                 <% } %>
               </td>
               <td>
-                <a href="/admin/products/edit/<%= product._id %>" class="action-btn">Edit</a>
-                <a href="/admin/productdetails?id=<%= product._id %>" class="action-btn view" target="_blank">View</a>
+                <a href="/category/products/edit/<%= product._id %>" class="action-btn">Edit</a>
                 <a href="javascript:void(0);" class="action-btn delete"
                    onclick="deleteProduct('<%= product._id %>', this)">
                    Delete
@@ -607,7 +608,8 @@
       subSelect.innerHTML = '<option value="">Loading...</option>';
       subSelect.disabled = true;
 
-      fetch(`/admin/subcategories/${categoryId}`)
+      // FIX: Use the correct API endpoint for fetching subcategories
+      fetch(`/category/subcategories/${categoryId}`)
         .then(res => res.json())
         .then(data => {
           subSelect.disabled = false;
@@ -630,7 +632,7 @@
             subSelect.innerHTML = '<option value="">No subcategories found</option>';
           }
         })
-        .catch(() => {
+        .catch((err) => {
           subSelect.innerHTML = '<option value="">Error loading subcategories</option>';
           subSelect.disabled = false;
         });
@@ -880,7 +882,7 @@
     async function deleteProduct(productId, btn) {
       if (!confirm('Are you sure you want to delete this product?')) return;
       try {
-        const res = await fetch(`/admin/products/delete/${productId}`, {
+        const res = await fetch(`/category/products/delete/${productId}`, {
           method: 'DELETE'
         });
         const data = await res.json();

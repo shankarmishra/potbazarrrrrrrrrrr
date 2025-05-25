@@ -1,22 +1,32 @@
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-const adminAuthMiddleware = (req, res, next) => {
-    // Ensure req.cookies exists
-    if (!req.cookies || !req.cookies.adminToken) {
-        return res.status(401).redirect('/adminlogin'); // Redirect to login if token is missing
+dotenv.config();
+
+export const verifyAdmin = (req, res, next) => {
+  const token = req.cookies?.adminToken;
+
+  // If token is missing, redirect to login
+  if (!token) {
+    console.warn('⚠️ No admin token found. Redirecting to login.');
+    return res.redirect('/admin/login');
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'default_jwt_secret');
+
+    // Check if the decoded token has admin privileges
+    if (decoded.role !== 'admin') {
+      console.warn('🚫 Access denied: User is not an admin.');
+      return res.status(403).send('Access denied: Not an admin');
     }
 
-    const token = req.cookies.adminToken;
-
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET); // Verify the token
-        req.admin = decoded; // Store admin info in request object
-        res.locals.isAdmin = true; // Pass isAdmin flag to templates
-        next(); // Proceed to the next middleware/route handler
-    } catch (error) {
-        console.error('❌ Invalid token:', error);
-        return res.status(401).redirect('/adminlogin'); // Redirect to login if token is invalid
-    }
+    // Attach decoded admin data to the request
+    req.admin = decoded;
+    next();
+  } catch (error) {
+    console.error('❌ Invalid or expired admin token:', error.message);
+    res.clearCookie('adminToken');
+    res.redirect('/admin/login');
+  }
 };
-
-export default adminAuthMiddleware;

@@ -2,7 +2,8 @@ import express from 'express';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
-import adminAuthMiddleware from '../Middleware/adminAuthMiddleware.js';
+import { verifyAdmin } from '../Middleware/adminAuthMiddleware.js';
+import Subcategory from '../models/Subcategorymodel.js'; // <-- ADD THIS LINE
 import {
   getAdminPage,
   createCategory,
@@ -59,7 +60,7 @@ const upload = multer({ storage, fileFilter });
 const router = express.Router();
 
 // Apply admin authentication middleware to all routes below
-router.use(adminAuthMiddleware);
+router.use(verifyAdmin);
 
 // Admin dashboard
 router.get('/admin', getAdminPage);
@@ -78,7 +79,13 @@ router.post('/subcategory/delete/:subId', deleteSubcategory);
 
 // Product routes (admin)
 router.get('/product/add', getAdminPage);
-router.post('/product/add', upload.single('image_file'), createProduct);
+router.post('/product/add', verifyAdmin, upload.array('images', 5), createProduct);
 router.delete('/products/delete/:id', deleteProduct);
+
+// Get subcategories by category ID
+router.get('/subcategories/:categoryId', async (req, res) => {
+  const subs = await Subcategory.find({ category: req.params.categoryId });
+  res.json(subs);
+});
 
 export default router;

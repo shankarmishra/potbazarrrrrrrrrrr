@@ -9,7 +9,7 @@ import {
   // forgotPassword,
   // resetPassword,
   // verifyPhone,
-} from '../controllers/userControllers.js';
+} from '../controllers/userControllers.js'; // Assuming the cart logic is handled within userControllers.js
 import { verifyToken, requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 
 const router = express.Router();
@@ -76,7 +76,7 @@ webRoutes.get('/', (req, res) => {
   });
 });
 
-webRoutes.get('/cart', (req, res) => {
+webRoutes.get('/cart', requireLogin, (req, res) => {
   res.render('cart', {
     user: res.locals.user, // Make user info available in the cart view
     // ... other data for the cart page

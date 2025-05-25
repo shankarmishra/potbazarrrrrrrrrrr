@@ -32,6 +32,15 @@ router.get('/product/stock/:id', async (req, res) => {
   }
 });
 
+// Route to handle buy now action (protected, session-based login)
+router.post('/buy-now', requireLogin, async (req, res) => {
+  // If requireLogin middleware passes, the user is authenticated.
+  // Proceed with the buy now logic here.
+  // For now, just sending a success response.
+  res.json({ success: true, message: 'Proceeding to checkout' });
+});
+
+
 // Handle invalid routes for this module
 router.use((req, res) => {
   res.status(404).json({

@@ -73,6 +73,7 @@ app.use('/admin', (req, res, next) => {
 
 // User session middleware — must run BEFORE routes to set res.locals.user
 app.use(async (req, res, next) => {
+  console.log('Custom User Session Middleware - req.session:', req.session);
   if (req.session?.userId) {
     try {
       const user = await User.findById(req.session.userId).select('name email phone');

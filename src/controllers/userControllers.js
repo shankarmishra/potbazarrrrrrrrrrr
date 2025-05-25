@@ -160,6 +160,10 @@ const login = async (req, res) => {
       });
     }
 
+    // Establish session
+    req.session.userId = user._id;
+    req.session.save();
+
     const { accessToken, refreshToken } = generateTokens(user._id);
     await User.findByIdAndUpdate(user._id, { refreshToken });
 
@@ -370,11 +374,20 @@ const editProfile = async (req, res) => {
   }
 };
 
+// Add Address
+const addAddress = async (req, res) => {
+  // Placeholder for now
+  return res.json({ success: true, message: 'Address added successfully (placeholder)' });
+};
+
 export {
   register,
   login,
   logout,
   refreshTokenController as refreshToken,
   getProfile,
-  editProfile
+  editProfile,
+  // Export the new function
+  addAddress,
 };
+

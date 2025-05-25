@@ -55,13 +55,28 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Check login status
+// Check login status (supports session and JWT)
 router.get('/check-login', (req, res) => {
+  // Session-based check
   if (req.session && req.session.userId) {
     return res.json({ loggedIn: true });
-  } else {
-    return res.json({ loggedIn: false });
   }
+
+  // JWT-based check (for API clients or stateless auth)
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const jwt = require('jsonwebtoken');
+    try {
+      const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+      if (decoded) return res.json({ loggedIn: true });
+    } catch (e) {
+      // Invalid token
+    }
+  }
+
+  // Not logged in
+  return res.json({ loggedIn: false });
 });
 
 export default router;

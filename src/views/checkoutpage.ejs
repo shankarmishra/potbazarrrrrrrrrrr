@@ -1119,8 +1119,7 @@
                     const totalAmount = subtotal + deliveryCharge;
 
                     // --- FIX: Robust user data check ---
-                    const userData = await apiRequest('get', '/api/users/profile', null, token);
-                    const userObj = userData.data || userData.user || userData;
+                    const userObj = await apiRequest('get', '/api/users/profile');
                     if (!userObj || !userObj._id) {
                         throw new Error('Invalid user data received. Please log in again.');
                     }

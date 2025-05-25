@@ -58,8 +58,8 @@ const apiRoutes = express.Router();
 
 apiRoutes.use(verifyToken); // All API routes require token verification
 
-apiRoutes.get('/profile', getProfile);
-apiRoutes.put('/profile', editProfile);
+apiRoutes.get('/profile', requireApiLogin, getProfile);
+apiRoutes.put('/profile', requireApiLogin, editProfile);
 
 router.use('/api', apiRoutes); // Mount under /api prefix
 
@@ -73,6 +73,13 @@ webRoutes.get('/', (req, res) => {
   res.render('home', { 
     user: res.locals.user,
     currentYear: new Date().getFullYear()
+  });
+});
+
+webRoutes.get('/cart', (req, res) => {
+  res.render('cart', {
+    user: res.locals.user, // Make user info available in the cart view
+    // ... other data for the cart page
   });
 });
 

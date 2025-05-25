@@ -30,6 +30,7 @@
       min-height: 100vh;
       scroll-behavior: smooth;
       overflow-x: hidden;
+      scroll-padding-top: 100px;
     }
 
     body {
@@ -392,7 +393,7 @@
     .hero-banner {
       display: flex;
       margin: 20px auto;
-      max-width: 1000px;
+      max-width: 1200px;
       width: 100%;
       border-radius: 15px;
       overflow: hidden;
@@ -401,28 +402,59 @@
 
     .hero-left {
       width: 50%;
-      background-color: #276749;
+      background: linear-gradient(135deg, var(--primary-color), #276749);
       padding: 40px;
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: center;
+      gap: 2rem;
     }
 
     .hero-left h1 {
-      font-size: 36px;
+      font-size: 3rem;
       font-weight: bold;
-      margin-bottom: 15px;
+      line-height: 1.2;
     }
 
     .hero-left h1 span {
       margin-left: 10px;
-      font-size: 30px;
+      font-size: 2.5rem;
     }
 
     .hero-left p {
-      font-size: 16px;
+      font-size: 1.2rem;
       opacity: 0.9;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .primary-btn, .secondary-btn {
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .primary-btn {
+      background: white;
+      color: var(--primary-color);
+    }
+
+    .secondary-btn {
+      background: transparent;
+      color: white;
+      border: 2px solid white;
+    }
+
+    .primary-btn:hover, .secondary-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .hero-right {
@@ -437,8 +469,9 @@
     .hero-slider {
       position: relative;
       width: 100%;
-      height: 200px;
+      height: 300px;
       overflow: hidden;
+      border-radius: 12px;
     }
 
     .hero-slider .slide {
@@ -454,89 +487,82 @@
       opacity: 1;
     }
 
-    .hero-slider img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 8px;
-    }
-
     .hero-nav {
       position: absolute;
-      bottom: 10px;
+      bottom: 20px;
       left: 50%;
       transform: translateX(-50%);
       display: flex;
-      gap: 8px;
+      gap: 12px;
     }
 
     .hero-nav-dot {
-      width: 10px;
-      height: 10px;
-      background: #ccc;
+      width: 12px;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.5);
       border-radius: 50%;
       cursor: pointer;
       transition: background 0.3s;
     }
 
     .hero-nav-dot.active {
-      background: var(--primary-color);
+      background: white;
     }
 
     /* Category Highlight Section */
     .category-highlight {
-      padding: 3rem 1rem;
+      padding: 2rem 1rem;
+      background: linear-gradient(to bottom, #f9fafb, #ffffff);
+    }
+
+    .section-header {
       text-align: center;
+      margin-bottom: 2rem;
     }
 
-    .category-highlight h2 {
-      color: var(--primary-color);
+    .section-header h2 {
       font-size: 2rem;
+      color: var(--primary-color);
       margin-bottom: 0.5rem;
-      font-weight: 700;
     }
 
-    .category-highlight-text {
-      font-size: 1.5rem;
-      color: var(--text-color);
-      margin-bottom: 1.5rem;
-    }
-
-    .category-highlight-bar {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 1rem;
+    .category-container {
       max-width: 1000px;
       margin: 0 auto;
     }
 
-    .category-highlight-link {
-      background: #f7fafc;
+    .category-grid {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+
+    .category-card {
+      width: 200px;
+      background: white;
       border-radius: 12px;
-      padding: 1rem;
-      text-decoration: none;
-      transition: background 0.3s;
+      padding: 1.5rem;
       text-align: center;
+      text-decoration: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .category-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .category-card h3 {
       color: var(--text-color);
-    }
-
-    .category-highlight-link:hover {
-      background: #e8f5e9;
-    }
-
-    .category-highlight-img {
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin: 0 auto 0.5rem;
-    }
-
-    .category-highlight-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
+      font-size: 1.1rem;
+      margin: 0;
     }
 
     /* Product Section */
@@ -916,43 +942,53 @@
 
       .hero-banner {
         flex-direction: column;
-        max-width: 100%;
+        margin: 10px;
       }
 
-      .hero-left,
-      .hero-right {
+      .hero-left, .hero-right {
         width: 100%;
-      }
-
-      .hero-left {
-        padding: 20px;
-        min-height: 200px;
+        padding: 30px;
       }
 
       .hero-left h1 {
-        font-size: 28px;
+        font-size: 2.2rem;
       }
 
       .hero-left h1 span {
-        font-size: 24px;
+        font-size: 2rem;
       }
 
       .hero-left p {
-        font-size: 14px;
+        font-size: 1rem;
       }
 
-      .hero-right {
-        padding: 20px;
+      .hero-buttons {
+        flex-direction: column;
       }
 
       .hero-slider {
-        height: 150px;
+        height: 200px;
       }
 
-      .category-box,
-      .all-products-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
+      .category-highlight {
+        padding: 1.5rem 0.5rem;
+      }
+
+      .section-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .category-card {
+        width: 160px;
+        padding: 1rem;
+      }
+
+      .category-icon {
+        font-size: 2rem;
+      }
+
+      .category-card h3 {
+        font-size: 1rem;
       }
 
       .product-images {
@@ -1036,12 +1072,18 @@
         height: 120px;
       }
 
-      .category-highlight h2 {
-        font-size: 1.5rem;
+      .category-card {
+        width: 140px;
+        padding: 0.75rem;
       }
 
-      .category-highlight-text {
-        font-size: 1.2rem;
+      .category-icon {
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .category-card h3 {
+        font-size: 0.9rem;
       }
 
       .product-item {
@@ -1135,6 +1177,31 @@
 
     .view-more-btn:hover {
       background: #276749;
+    }
+
+    /* Add smooth scroll behavior to html */
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 100px;
+    }
+
+    /* Add transition to sections for better visual feedback */
+    section {
+      scroll-margin-top: 100px;
+    }
+
+    /* Optional: Add highlight effect when scrolled to section */
+    section:target {
+      animation: highlight 1s ease-out;
+    }
+
+    @keyframes highlight {
+      0% {
+        background-color: rgba(47, 133, 90, 0.1);
+      }
+      100% {
+        background-color: transparent;
+      }
     }
   </style>
 </head>
@@ -1275,6 +1342,10 @@
     <div class="hero-left">
       <h1>POTBAZAR<span>🌿</span></h1>
       <p>Explore a world of greenery with POTBAZAR!</p>
+      <div class="hero-buttons">
+        <a href="#category-section" class="primary-btn">Explore Collection</a>
+        <a href="#plants-section" class="secondary-btn">Shop Plants</a>
+      </div>
     </div>
     <div class="hero-right">
       <div class="hero-slider">
@@ -1289,18 +1360,30 @@
   </div>
 
   <!-- Category Highlight Section -->
-  <section class="category-highlight">
-    <h2>Explore Our Categories</h2>
-    <p class="category-highlight-text">Discover Your Perfect Plant!</p>
-    <div class="category-highlight-bar">
-      <% categories.slice(0, 6).forEach(category => { %>
-        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" class="category-highlight-link">
-          <div class="category-highlight-img">
-            <img src="<%= category.image_uri  %>" alt="<%= category.name %>" loading="lazy" >
-          </div>
-          <span><%= category.name %></span>
-        </a>
-      <% }) %>
+  <section class="category-highlight" id="category-section">
+    <div class="section-header">
+      <h2>Explore Our Categories</h2>
+    </div>
+    
+    <div class="category-container">
+      <div class="category-grid">
+        <% const categoryIcons = {
+          'SEEDS': '🌱',
+          'GARDEN ACCESSORIES': '🛠️',
+          'FLOWER BULBS': '🌷',
+          'PLANTS': '🪴'
+        } %>
+        
+        <% categories.forEach(category => { %>
+          <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>" 
+             class="category-card">
+            <div class="category-icon">
+              <%= categoryIcons[category.name] || '🌿' %>
+            </div>
+            <h3><%= category.name %></h3>
+          </a>
+        <% }) %>
+      </div>
     </div>
   </section>
 
@@ -1309,10 +1392,9 @@
     const maxProducts = 16; 
   %>
   <% categories.forEach(category => { %>
-    <section class="category" id="cat-<%= category._id %>">
-      <h2><%= category.name %></h2>
-      <% if (category.products && category.products.length > 0) { %>
-        <div class="category-box">
+    <section class="category" id="<%= category.name.toLowerCase() === 'plants' ? 'plants-section' : `cat-${category._id}` %>">
+      <div class="category-box">
+        <% if (category.products && category.products.length > 0) { %>
           <% category.products.slice(0, maxProducts).forEach((product, idx) => { %>
             <div class="product-item card <%= idx >= 8 ? 'mobile-hidden' : '' %>">
               <div class="product-images">
@@ -1347,15 +1429,8 @@
               </div>
             </div>
           <% }) %>
-        </div>
-        <% if (category.products.length > maxProducts) { %>
-          <button class="view-more-btn" onclick="window.location.href='/api/products/products?category=<%= encodeURIComponent(category.name) %>'" aria-label="View more products in <%= category.name %>">View More</button>
-        <% } else if (category.products.length > 8) { %>
-          <button class="view-more-btn mobile-only" onclick="showAllProducts(this)" aria-label="Show all products">View More</button>
         <% } %>
-      <% } else { %>
-        <p style="text-align: center; color: var(--secondary-text-color);">No products available in this category.</p>
-      <% } %>
+      </div>
     </section>
   <% }) %>
 
@@ -1803,6 +1878,26 @@
 
   document.getElementById('back-to-top').addEventListener('click', function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // Add smooth scrolling for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetId = this.getAttribute('href');
+      const targetElement = document.querySelector(targetId);
+      
+      if (targetElement) {
+        const headerOffset = 100; // Adjust based on your header height
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+      }
+    });
   });
   </script>
 </body>

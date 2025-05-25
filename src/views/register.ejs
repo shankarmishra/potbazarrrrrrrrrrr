@@ -343,8 +343,16 @@
           throw new Error(data.message || 'Registration failed. Please try again.');
         }
 
-        // Registration successful: render login page
-        window.location.replace(data.redirect || '/login?success=1');
+        // Registration successful: render login page or redirect
+        if (data.success) {
+          // Option 1: Redirect to login page with success message
+          window.location.replace('/login?success=1');
+          // Option 2: If you want to show a message and then redirect, uncomment below:
+          // showSuccess('Registration successful! Redirecting to login...');
+          // setTimeout(() => window.location.replace('/login?success=1'), 1500);
+        } else {
+          throw new Error(data.message || 'Registration failed. Please try again.');
+        }
       } catch (error) {
         showError(error.message);
       }

@@ -1,78 +1,97 @@
-
 import express from 'express';
 import rateLimit from 'express-rate-limit';
 import {
   register,
   login,
-  // refreshToken ,
   logout,
   getProfile,
   editProfile,
-  forgotPassword,
-  resetPassword,
-  verifyPhone,
+  // forgotPassword,
+  // resetPassword,
+  // verifyPhone,
 } from '../controllers/userControllers.js';
-import verifyToken from '../Middleware/userMiddleware.js';
-import { requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
+import { verifyToken, requireLogin, requireApiLogin } from '../Middleware/userMiddleware.js';
 
 const router = express.Router();
 
-// Rate limiter for forgot password route
-const forgotPasswordLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 requests per windowMs
+// Constants
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
+const MAX_REQUESTS_PER_WINDOW = 5;
+
+// Rate limiters
+const authLimiter = rateLimit({
+  windowMs: RATE_LIMIT_WINDOW,
+  max: MAX_REQUESTS_PER_WINDOW,
   message: 'Too many requests from this IP, please try again later.',
+  skip: (req) => process.env.NODE_ENV === 'test' // Skip during tests
+});
+
+const passwordResetLimiter = rateLimit({
+  windowMs: RATE_LIMIT_WINDOW,
+  max: 3, // More strict for password reset
+  message: 'Too many password reset attempts, please try again later.'
 });
 
 /** ---------- Public Routes ---------- **/
 
-// User registration (API)
-router.post('/register', register);
+// User authentication routes
+router.post('/register', authLimiter, register);
+router.post('/login', authLimiter, login);
 
-// User login (API)
-router.post('/login', login);
+// Password management
+// // router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+// router.post('/reset-password', resetPassword);
 
-// Refresh token (API)
-// router.post('/refresh-token', refreshToken );
+// Phone verification
+// router.post('/verify-phone', verifyPhone);
 
-// Forgot password (API, rate-limited)
-router.post('/forgot-password', forgotPasswordLimiter, forgotPassword);
-
-// Reset password (API)
-router.post('/reset-password', resetPassword);
-
-// Phone number verification (API, optional)
-router.post('/verify-phone', verifyPhone);
-
-// Serve the policy page (EJS page)
+// Policy page
 router.get('/policy', (req, res) => {
-  res.render('policy', { title: 'Policy' });
+  res.render('policy', { 
+    title: 'Privacy Policy',
+    currentYear: new Date().getFullYear() 
+  });
 });
 
-/** ---------- Protected Routes ---------- **/
+/** ---------- Protected API Routes (Token-based) ---------- **/
+const apiRoutes = express.Router();
 
-// Profile route (API, token-based)
-router.get('/profile', verifyToken, getProfile);
+apiRoutes.use(verifyToken); // All API routes require token verification
 
-// Edit profile (API, token-based)
-router.put('/profile', verifyToken, editProfile);
+apiRoutes.get('/profile', getProfile);
+apiRoutes.put('/profile', editProfile);
 
-// Profile route (EJS, session-based)
-router.get('/profile-page', requireLogin, getProfile);
+router.use('/api', apiRoutes); // Mount under /api prefix
 
-// Profile route (API, session-based, returns JSON error if not logged in)
-router.get('/profile-api', requireApiLogin, getProfile);
+/** ---------- Protected Web Routes (Session-based) ---------- **/
+const webRoutes = express.Router();
 
-/** ---------- Page Routes ---------- **/
+webRoutes.use(requireLogin); // All web routes require session
 
-// Home page (EJS, session-based)
-router.get('/', requireLogin, (req, res) => {
-  res.render('home', { user: res.locals.user });
+webRoutes.get('/profile', getProfile);
+webRoutes.get('/', (req, res) => {
+  res.render('home', { 
+    user: res.locals.user,
+    currentYear: new Date().getFullYear()
+  });
 });
 
-/** ---------- Logout Route ---------- **/
+router.use(webRoutes);
 
-// Logout (API and session)
+/** ---------- Hybrid Routes (API/Web) ---------- **/
+
+// Logout (works for both API and web)
 router.post('/logout', logout);
+
+// Profile API endpoint (works with both token and session)
+router.get('/profile-api', (req, res, next) => {
+  // Check if it's an API request
+  if (req.headers['content-type'] === 'application/json' || 
+      req.headers['accept'].includes('application/json')) {
+    return verifyToken(req, res, next);
+  }
+  // Otherwise treat as web request
+  return requireLogin(req, res, next);
+}, getProfile);
 
 export default router;

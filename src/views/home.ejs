@@ -1482,244 +1482,328 @@
   <div class="sticky-cart" onclick="goToCart()"></div>
 
   <script>
-    const API_BASE_URL = 'http://localhost:3000';
-    let profileVisible = false;
-    let scrollPosition = 0;
+  // Utility: Check if user is logged in (by JWT in localStorage)
+  function isLoggedIn() {
+    return !!localStorage.getItem('token');
+  }
 
-    function debounce(func, wait) {
-      let timeout;
-      return function executedFunction(...args) {
-        const later = () => {
-          clearTimeout(timeout);
-          func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-      };
-    }
-
-    function searchProducts(searchTerm) {
-      // Placeholder for search functionality
-      console.log('Search term:', searchTerm);
-    }
-
-    async function apiRequest(method, url, data, token) {
-      try {
-        const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-        const response = await axios.request({
-          method,
-          url: `${API_BASE_URL}${url}`,
-          data,
-          headers,
-        });
-        return response.data;
-      } catch (error) {
-        throw error.response?.data || { message: 'Request failed' };
+  // Save token on login (example usage)
+  async function loginUser(email, password) {
+    try {
+      const res = await axios.post('/login', { email, password });
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        console.log('Login successful');
+        window.location.href = '/'; // Redirect after login
       }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Login failed');
     }
+  }
 
-    function checkLoginBeforeAction(actionCallback) {
-      fetch('/check-login')
-        .then(res => res.json())
-        .then(data => {
-          if (data.loggedIn) {
-            actionCallback();
-          } else {
-            document.getElementById('loginModal').style.display = 'flex';
-          }
-        })
-        .catch(error => {
-          console.error('Error checking login:', error);
-          document.getElementById('loginModal').style.display = 'flex';
-        });
-    }
-
-    function goToCart() {
-      checkLoginBeforeAction(() => {
-        window.location.href = '/cart';
-      });
-    }
-
-    function toggleProfile() {
-      checkLoginBeforeAction(() => {
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown) {
-          profileVisible = !profileVisible;
-          dropdown.classList.toggle('show', profileVisible);
+  // Fetch user profile (JWT protected)
+  async function fetchUser() {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return null;
+      const res = await axios.get('/api/user/profile', {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       });
+      return res.data.user; // .user contains sanitized user
+    } catch (err) {
+      localStorage.removeItem('token');
+      return null;
     }
+  }
 
-    async function logout() {
-      try {
-        const token = localStorage.getItem('token');
-        await apiRequest('post', '/api/users/logout', null, token);
-      } catch (error) {
-        console.error('Logout error:', error);
-      } finally {
-        localStorage.removeItem('token');
-        localStorage.removeItem('cart');
-        profileVisible = false;
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown) dropdown.classList.remove('show');
-        window.location.href = '/login';
-      }
-    }
-
-    function closeModal() {
-      document.getElementById('loginModal').style.display = 'none';
-    }
-
-    function toggleCategorySidebar() {
-      const sidebar = document.getElementById('categorySidebar');
-      if (sidebar.classList.contains('show')) {
-        sidebar.classList.remove('show');
-        document.body.classList.remove('body-no-scroll');
-        window.scrollTo(0, scrollPosition);
-      } else {
-        scrollPosition = window.pageYOffset;
-        sidebar.classList.add('show');
-        document.body.classList.add('body-no-scroll');
-      }
-    }
-
-    function addToCart(productId, productName, productPrice, productImage, productDescription) {
-      let cart = JSON.parse(localStorage.getItem('cart')) || [];
-      const existing = cart.find(item => item.id === productId);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({
-          id: productId,
-          name: productName,
-          price: parseFloat(productPrice),
-          image: productImage || 'https://source.unsplash.com/200x180/?plant',
-          description: productDescription,
-          quantity: 1
-        });
-      }
-      localStorage.setItem('cart', JSON.stringify(cart));
-      const popup = document.getElementById('cartPopup');
-      popup.classList.remove('hidden');
-      popup.classList.add('show');
-      setTimeout(() => {
-        popup.classList.remove('show');
-        setTimeout(() => popup.classList.add('hidden'), 500);
-      }, 2000);
-    }
-
-    function showAllProducts(btn) {
-      const categoryBox = btn.closest('.category').querySelector('.category-box');
-      if (categoryBox) {
-        categoryBox.querySelectorAll('.mobile-hidden').forEach(el => el.style.display = 'block');
-      }
-      btn.style.display = 'none';
-    }
-
-    function handleNewsletterSubmit(event) {
-      event.preventDefault();
-      alert('Subscribed successfully!');
-      event.target.reset();
-    }
-
-    let currentHeroSlide = 0;
-    const heroSlides = document.querySelectorAll('.hero-slider .slide');
-    const heroDots = document.querySelectorAll('.hero-nav-dot');
-
-    function updateHeroSlide() {
-      heroSlides.forEach(slide => slide.classList.remove('active'));
-      heroDots.forEach(dot => dot.classList.remove('active'));
-      if (heroSlides[currentHeroSlide]) {
-        heroSlides[currentHeroSlide].classList.add('active');
-        heroDots[currentHeroSlide].classList.add('active');
-      }
-    }
-
-    function goToHeroSlide(index) {
-      if (index >= 0 && index < heroSlides.length) {
-        currentHeroSlide = index;
-        updateHeroSlide();
-      }
-    }
-
-    if (heroSlides.length > 0) {
-      updateHeroSlide();
-      setInterval(() => {
-        currentHeroSlide = (currentHeroSlide + 1) % heroSlides.length;
-        updateHeroSlide();
-      }, 5000);
-    }
-
-    function prevImage(button) {
-      const slider = button.closest('.product-images').querySelector('.product-slider');
-      const images = slider.querySelectorAll('img');
-      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
-      images[current].classList.remove('active');
-      current = (current - 1 + images.length) % images.length;
-      images[current].classList.add('active');
-    }
-
-    function nextImage(button) {
-      const slider = button.closest('.product-images').querySelector('.product-slider');
-      const images = slider.querySelectorAll('img');
-      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
-      images[current].classList.remove('active');
-      current = (current + 1) % images.length;
-      images[current].classList.add('active');
-    }
-
-    window.addEventListener('click', function(e) {
-      const sidebar = document.getElementById('categorySidebar');
-      if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
-        sidebar.classList.remove('show');
-        document.body.classList.remove('body-no-scroll');
-        window.scrollTo(0, scrollPosition);
-      }
-
+  // Logout function
+  async function logout() {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.post('/api/users/logout', {}, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+    } catch (error) {
+      // Ignore error, just clear local data
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('cart');
+      profileVisible = false;
       const dropdown = document.getElementById('profileDropdown');
-      if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+      if (dropdown) dropdown.classList.remove('show');
+      window.location.href = '/login';
+    }
+  }
+
+  // Check user login status on page load and update UI accordingly
+  async function checkUserLoginStatus() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Hide profile dropdown if not logged in
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown) dropdown.classList.remove('show');
+      profileVisible = false;
+      return false;
+    }
+    // Optionally fetch user data and update UI
+    const user = await fetchUser();
+    if (!user) {
+      // Token invalid/expired, treat as logged out
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown) dropdown.classList.remove('show');
+      profileVisible = false;
+      return false;
+    }
+    // User is logged in
+    return true;
+  }
+
+  // Call on page load
+  checkUserLoginStatus();
+
+  function checkLoginBeforeAction(actionCallback) {
+    if (isLoggedIn()) {
+      actionCallback();
+    } else {
+      document.getElementById('loginModal').style.display = 'flex';
+    }
+  }
+
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  function searchProducts(searchTerm) {
+    // Placeholder for search functionality
+    console.log('Search term:', searchTerm);
+  }
+
+  async function apiRequest(method, url, data, token) {
+    try {
+      const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+      const response = await axios.request({
+        method,
+        url: `${API_BASE_URL}${url}`,
+        data,
+        headers,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || { message: 'Request failed' };
+    }
+  }
+
+  function checkLoginBeforeAction(actionCallback) {
+    fetch('/check-login')
+      .then(res => res.json())
+      .then(data => {
+        if (data.loggedIn) {
+          actionCallback();
+        } else {
+          document.getElementById('loginModal').style.display = 'flex';
+        }
+      })
+      .catch(error => {
+        document.getElementById('loginModal').style.display = 'flex';
+      });
+  }
+
+  function goToCart() {
+    checkLoginBeforeAction(() => {
+      window.location.href = '/cart';
+    });
+  }
+
+  function toggleProfile() {
+    checkLoginBeforeAction(() => {
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown) {
+        profileVisible = !profileVisible;
+        dropdown.classList.toggle('show', profileVisible);
+      }
+    });
+  }
+
+  async function logout() {
+    try {
+      const token = localStorage.getItem('token');
+      await apiRequest('post', '/api/users/logout', null, token);
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('cart');
+      profileVisible = false;
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown) dropdown.classList.remove('show');
+      window.location.href = '/login';
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('loginModal').style.display = 'none';
+  }
+
+  function toggleCategorySidebar() {
+    const sidebar = document.getElementById('categorySidebar');
+    if (sidebar.classList.contains('show')) {
+      sidebar.classList.remove('show');
+      document.body.classList.remove('body-no-scroll');
+      window.scrollTo(0, scrollPosition);
+    } else {
+      scrollPosition = window.pageYOffset;
+      sidebar.classList.add('show');
+      document.body.classList.add('body-no-scroll');
+    }
+  }
+
+  function addToCart(productId, productName, productPrice, productImage, productDescription) {
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+      existing.quantity += 1;
+    } else {
+      cart.push({
+        id: productId,
+        name: productName,
+        price: parseFloat(productPrice),
+        image: productImage || 'https://source.unsplash.com/200x180/?plant',
+        description: productDescription,
+        quantity: 1
+      });
+    }
+    localStorage.setItem('cart', JSON.stringify(cart));
+    const popup = document.getElementById('cartPopup');
+    popup.classList.remove('hidden');
+    popup.classList.add('show');
+    setTimeout(() => {
+      popup.classList.remove('show');
+      setTimeout(() => popup.classList.add('hidden'), 500);
+    }, 2000);
+  }
+
+  function showAllProducts(btn) {
+    const categoryBox = btn.closest('.category').querySelector('.category-box');
+    if (categoryBox) {
+      categoryBox.querySelectorAll('.mobile-hidden').forEach(el => el.style.display = 'block');
+    }
+    btn.style.display = 'none';
+  }
+
+  function handleNewsletterSubmit(event) {
+    event.preventDefault();
+    alert('Subscribed successfully!');
+    event.target.reset();
+  }
+
+  let currentHeroSlide = 0;
+  const heroSlides = document.querySelectorAll('.hero-slider .slide');
+  const heroDots = document.querySelectorAll('.hero-nav-dot');
+
+  function updateHeroSlide() {
+    heroSlides.forEach(slide => slide.classList.remove('active'));
+    heroDots.forEach(dot => dot.classList.remove('active'));
+    if (heroSlides[currentHeroSlide]) {
+      heroSlides[currentHeroSlide].classList.add('active');
+      heroDots[currentHeroSlide].classList.add('active');
+    }
+  }
+
+  function goToHeroSlide(index) {
+    if (index >= 0 && index < heroSlides.length) {
+      currentHeroSlide = index;
+      updateHeroSlide();
+    }
+  }
+
+  if (heroSlides.length > 0) {
+    updateHeroSlide();
+    setInterval(() => {
+      currentHeroSlide = (currentHeroSlide + 1) % heroSlides.length;
+      updateHeroSlide();
+    }, 5000);
+  }
+
+  function prevImage(button) {
+    const slider = button.closest('.product-images').querySelector('.product-slider');
+    const images = slider.querySelectorAll('img');
+    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+    images[current].classList.remove('active');
+    current = (current - 1 + images.length) % images.length;
+    images[current].classList.add('active');
+  }
+
+  function nextImage(button) {
+    const slider = button.closest('.product-images').querySelector('.product-slider');
+    const images = slider.querySelectorAll('img');
+    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+    images[current].classList.remove('active');
+    current = (current + 1) % images.length;
+    images[current].classList.add('active');
+  }
+
+  window.addEventListener('click', function(e) {
+    const sidebar = document.getElementById('categorySidebar');
+    if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
+      sidebar.classList.remove('show');
+      document.body.classList.remove('body-no-scroll');
+      window.scrollTo(0, scrollPosition);
+    }
+
+    const dropdown = document.getElementById('profileDropdown');
+    if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+      dropdown.classList.remove('show');
+      profileVisible = false;
+    }
+
+    const modal = document.getElementById('loginModal');
+    if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+      modal.style.display = 'none';
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar && sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      }
+      const modal = document.getElementById('loginModal');
+      if (modal && modal.style.display === 'flex') {
+        modal.style.display = 'none';
+      }
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown && dropdown.classList.contains('show')) {
         dropdown.classList.remove('show');
         profileVisible = false;
       }
+    }
+  });
 
-      const modal = document.getElementById('loginModal');
-      if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
-        modal.style.display = 'none';
-      }
-    });
+  window.addEventListener('scroll', function() {
+    const backToTop = document.getElementById('back-to-top');
+    if (window.scrollY > 300) {
+      backToTop.classList.add('show');
+    } else {
+      backToTop.classList.remove('show');
+    }
+  });
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') {
-        const sidebar = document.getElementById('categorySidebar');
-        if (sidebar && sidebar.classList.contains('show')) {
-          sidebar.classList.remove('show');
-          document.body.classList.remove('body-no-scroll');
-          window.scrollTo(0, scrollPosition);
-        }
-        const modal = document.getElementById('loginModal');
-        if (modal && modal.style.display === 'flex') {
-          modal.style.display = 'none';
-        }
-        const dropdown = document.getElementById('profileDropdown');
-        if (dropdown && dropdown.classList.contains('show')) {
-          dropdown.classList.remove('show');
-          profileVisible = false;
-        }
-      }
-    });
-
-    window.addEventListener('scroll', function() {
-      const backToTop = document.getElementById('back-to-top');
-      if (window.scrollY > 300) {
-        backToTop.classList.add('show');
-      } else {
-        backToTop.classList.remove('show');
-      }
-    });
-
-    document.getElementById('back-to-top').addEventListener('click', function() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
+  document.getElementById('back-to-top').addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
   </script>
 </body>
 </html>

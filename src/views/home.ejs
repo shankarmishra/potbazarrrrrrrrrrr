@@ -1396,6 +1396,22 @@
         background-color: transparent;
       }
     }
+
+    /* Product grid: 2 columns on mobile */
+    @media (max-width: 768px) {
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem;
+      }
+    }
+    @media (max-width: 480px) {
+      .category-box,
+      .all-products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.7rem;
+      }
+    }
   </style>
 </head>
 <body>

@@ -1011,11 +1011,12 @@
       }
 
       .recommended-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.7rem;
       }
 
       .recommended-products .product-item img {
-        height: 120px;
+        height: 110px;
       }
 
       .recommended-products .product-item h4 {
@@ -1060,6 +1061,26 @@
 
       .recommended-products .product-item img {
         height: 200px;
+      }
+    }
+
+    /* Recommended Products: 2 columns on mobile */
+    @media (max-width: 768px) {
+      .recommended-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 1rem;
+      }
+      .recommended-products .product-item img {
+        height: 140px;
+      }
+    }
+    @media (max-width: 480px) {
+      .recommended-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.7rem;
+      }
+      .recommended-products .product-item img {
+        height: 110px;
       }
     }
   </style>
@@ -1229,7 +1250,9 @@
       <div class="recommended-grid">
         <% recommendedProducts.slice(0, 8).forEach(related => { %>
           <div class="product-item">
-            <img src="<%= related.images[0] || '/images/default-image.jpg' %>" alt="<%= related.name %>" onerror="this.src='https://source.unsplash.com/200x180/?plant'" loading="lazy">
+            <a href="/api/products/productdetails?id=<%= related._id %>">
+              <img src="<%= related.images[0] || '/images/default-image.jpg' %>" alt="<%= related.name %>" onerror="this.src='https://source.unsplash.com/200x180/?plant'" loading="lazy">
+            </a>
             <h4><%= related.name %></h4>
             <p>₹<%= related.price.toFixed(2) %></p>
             <a href="/api/products/productdetails?id=<%= related._id %>" class="view-details" aria-label="View details for <%= related.name %>">View Details</a>

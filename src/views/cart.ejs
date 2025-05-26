@@ -217,17 +217,26 @@
             min-width: 240px;
             padding: 1rem;
             z-index: 1300;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            animation: fadeInProfile 0.2s;
+        }
+
+        @keyframes fadeInProfile {
+            from { opacity: 0; transform: translateY(-10px);}
+            to { opacity: 1; transform: translateY(0);}
         }
 
         .profile-dropdown.show {
             display: flex;
-            flex-direction: column;
         }
 
         .profile-dropdown p {
             margin: 0.5rem 0;
             font-size: 14px;
             color: var(--text-color);
+            word-break: break-word;
         }
 
         .profile-dropdown button {
@@ -253,6 +262,28 @@
 
         .profile-dropdown button.logout-btn:hover {
             background: #b71c1c;
+        }
+
+        @media (max-width: 768px) {
+            .profile-dropdown {
+                top: 56px;
+                right: 0.5rem;
+                left: 0.5rem;
+                width: calc(100vw - 1rem);
+                min-width: unset;
+                max-width: 98vw;
+                padding: 0.75rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .profile-dropdown {
+                top: 48px;
+                right: 0.25rem;
+                left: 0.25rem;
+                width: calc(100vw - 0.5rem);
+                padding: 0.5rem;
+            }
         }
 
         /* Modal */
@@ -791,27 +822,30 @@
 
     <!-- Profile Dropdown / Login Modal -->
     <% if (user) { %>
-        <div class="profile-dropdown" id="profileDropdown">
-            <p><strong>Name:</strong> <%= user.name || 'Not provided' %></p>
-            <p><strong>Email:</strong> <%= user.email %></p>
-            <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
-            <p><strong>Address:</strong> <%= user.address || 'Not provided' %></p>
-            <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
-            <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+    <div class="profile-dropdown" id="profileDropdown">
+        <div id="profileContent">
+            <p>Loading...</p>
         </div>
+        <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+        <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+    </div>
     <% } else { %>
-        <div class="modal" id="loginModal" style="display:none;">
-            <div class="modal-content">
-                <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
-                <h3>Please log in or register</h3>
-                <p>Login or register to proceed with this action.</p>
-                <button onclick="window.location.href='/login?redirect=/cart'" aria-label="Go to Login Page">Login</button>
-                <button onclick="window.location.href='/register?redirect=/cart'" aria-label="Go to Register Page">Register</button>
-                <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
-                    Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
-                </p>
-            </div>
+    <div class="profile-dropdown" id="profileDropdown" style="display:none;">
+        <div id="profileContent">
+            <p>Loading...</p>
         </div>
+        <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+        <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+    </div>
+    <div class="modal" id="loginModal" style="display:none;">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+            <h3>Please log in or register</h3>
+            <p>Login or register to proceed with this action.</p>
+            <button onclick="window.location.href='/login?redirect=/cart'" aria-label="Go to Login Page">Login</button>
+            <button onclick="window.location.href='/register?redirect=/cart'" aria-label="Go to Register Page">Register</button>
+        </div>
+    </div>
     <% } %>
 
     <!-- Category Bar -->
@@ -909,7 +943,123 @@
 
     <script>
         const API_BASE_URL = 'http://localhost:3000';
+
+        // API request helper
+        async function apiRequest(method, url, data = null, token = null) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = `Bearer ${token}`;
+                const config = { method, url, headers, withCredentials: true };
+                if (data && method !== 'GET') config.data = data;
+                const response = await axios(config);
+                return response.data;
+            } catch (error) {
+                throw error.response?.data || { message: 'Request failed' };
+            }
+        }
+
+        // Fetch user profile
+        async function fetchUserProfile() {
+            try {
+                const token = localStorage.getItem('accessToken');
+                const data = await apiRequest('GET', '/api/users/profile', null, token);
+                return data.success && data.user ? data.user : null;
+            } catch (error) {
+                console.error('Error fetching profile:', error);
+                return null;
+            }
+        }
+
+        // Encode HTML to prevent XSS
+        function encodeHTML(str) {
+            return str.replace(/[&<>"']/g, function (match) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[match];
+            });
+        }
+
+        // Render profile dropdown
+        async function renderProfileDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            const content = document.getElementById('profileContent');
+            if (!dropdown || !content) return;
+
+            content.innerHTML = '<div class="spinner"></div>';
+            const user = await fetchUserProfile();
+
+            if (user) {
+                const safeName = user.name ? encodeHTML(user.name) : 'Not provided';
+                const safeEmail = user.email ? encodeHTML(user.email) : 'Not provided';
+                const safePhone = user.phone ? encodeHTML(user.phone) : 'Not provided';
+                const safeAddress = user.addresses?.[0] ? encodeHTML([
+                    user.addresses[0].street,
+                    user.addresses[0].city,
+                    user.addresses[0].state,
+                    user.addresses[0].pinCode,
+                    user.addresses[0].country
+                ].filter(Boolean).join(', ')) : 'Not provided';
+
+                content.innerHTML = `
+                    <p><strong>Name:</strong> ${safeName}</p>
+                    <p><strong>Email:</strong> ${safeEmail}</p>
+                    <p><strong>Phone:</strong> ${safePhone}</p>
+                    <p><strong>Address:</strong> ${safeAddress}</p>
+                `;
+            } else {
+                content.innerHTML = `<p>Error loading profile. Please try again or log in.</p>`;
+            }
+        }
+
+        // Toggle profile dropdown
         let profileVisible = false;
+        async function toggleProfile() {
+  const dropdown = document.getElementById('profileDropdown');
+  if (!dropdown) return;
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
+    showModal();
+    return;
+  }
+  profileVisible = !profileVisible;
+  dropdown.classList.toggle('show', profileVisible);
+  dropdown.style.display = profileVisible ? 'flex' : 'none';
+  if (profileVisible) await renderProfileDropdown();
+}
+
+        // Logout
+        async function logout() {
+            try {
+                const token = localStorage.getItem('accessToken');
+                await apiRequest('POST', '/api/users/logout', null, token);
+            } catch (error) {
+                console.error('Logout error:', error);
+            } finally {
+                localStorage.removeItem('accessToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('cart');
+                profileVisible = false;
+                const dropdown = document.getElementById('profileDropdown');
+                if (dropdown) dropdown.classList.remove('show');
+                window.location.href = '/login';
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // On page load, initialize profile dropdown if logged in
+        document.addEventListener('DOMContentLoaded', () => {
+  if (isUserLoggedIn()) {
+    renderProfileDropdown();
+  }
+});
         let scrollPosition = 0;
 
         function debounce(func, wait) {
@@ -924,22 +1074,7 @@
             };
         }
 
-        async function apiRequest(method, url, data, token) {
-            try {
-                const headers = token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-                const response = await axios.request({
-                    method,
-                    url: `${API_BASE_URL}${url}`,
-                    data,
-                    headers,
-                });
-                return response.data;
-            } catch (error) {
-                throw error.response?.data || { message: 'Request failed' };
-            }
-        }
-
-        function searchProducts(searchTerm) {
+        async function searchProducts(searchTerm) {
             // Placeholder for search functionality
             console.log('Search term:', searchTerm);
         }
@@ -1111,36 +1246,6 @@
             });
         }
 
-        function toggleProfile() {
-            checkLoginBeforeAction(() => {
-                const dropdown = document.getElementById('profileDropdown');
-                if (dropdown) {
-                    profileVisible = !profileVisible;
-                    dropdown.classList.toggle('show', profileVisible);
-                }
-            });
-        }
-
-        async function logout() {
-            try {
-                const token = localStorage.getItem('token');
-                await apiRequest('post', '/api/users/logout', null, token);
-            } catch (error) {
-                console.error('Logout error:', error);
-            } finally {
-                localStorage.removeItem('token');
-                localStorage.removeItem('cart');
-                profileVisible = false;
-                const dropdown = document.getElementById('profileDropdown');
-                if (dropdown) dropdown.classList.remove('show');
-                window.location.href = '/login';
-            }
-        }
-
-        function closeModal() {
-            document.getElementById('loginModal').style.display = 'none';
-        }
-
         function toggleCategorySidebar() {
             const sidebar = document.getElementById('categorySidebar');
             if (sidebar.classList.contains('show')) {
@@ -1155,17 +1260,16 @@
         }
 
         window.addEventListener('click', function(e) {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+                dropdown.classList.remove('show');
+                profileVisible = false;
+            }
             const sidebar = document.getElementById('categorySidebar');
             if (sidebar && sidebar.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
                 sidebar.classList.remove('show');
                 document.body.classList.remove('body-no-scroll');
                 window.scrollTo(0, scrollPosition);
-            }
-
-            const dropdown = document.getElementById('profileDropdown');
-            if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
-                dropdown.classList.remove('show');
-                profileVisible = false;
             }
 
             const modal = document.getElementById('loginModal');

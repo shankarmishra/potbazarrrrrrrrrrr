@@ -3,7 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { verifyAdmin } from '../Middleware/adminAuthMiddleware.js';
-import Subcategory from '../models/Subcategorymodel.js'; // <-- ADD THIS LINE
+import Subcategory from '../models/Subcategorymodel.js';
 import {
   getAdminPage,
   createCategory,
@@ -16,7 +16,9 @@ import {
 } from '../controllers/categoryController.js';
 import {
   createProduct,
-  deleteProduct
+  deleteProduct,
+  editProduct,
+  showEditProduct
 } from '../controllers/productController.js';
 
 // Ensure upload directories exist
@@ -28,14 +30,13 @@ const ensureDirExists = (dir) => {
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const fullPath = req.baseUrl + req.path;
     let uploadPath;
-    if (fullPath.includes('/category')) {
-      uploadPath = 'public/uploads/category_images/';
-    } else if (fullPath.includes('/subcategory')) {
-      uploadPath = 'public/uploads/subcategory_images/';
-    } else if (fullPath.includes('/product')) {
+    if (req.baseUrl.includes('/category') && req.path.includes('/product')) {
       uploadPath = 'public/uploads/product_images/';
+    } else if (req.baseUrl.includes('/category') && req.path.includes('/subcategory')) {
+      uploadPath = 'public/uploads/subcategory_images/';
+    } else if (req.baseUrl.includes('/category')) {
+      uploadPath = 'public/uploads/category_images/';
     } else {
       return cb(new Error('Invalid upload path'));
     }
@@ -79,10 +80,12 @@ router.post('/subcategory/delete/:subId', deleteSubcategory);
 
 // Product routes (admin)
 router.get('/product/add', getAdminPage);
-router.post('/product/add', verifyAdmin, upload.array('images', 5), createProduct);
+router.post('/product/add', upload.array('images', 5), createProduct);
+router.post('/products/edit/:id', upload.array('images', 5), editProduct);
+router.get('/products/edit/:id', showEditProduct); // <-- Make sure this GET route exists!
 router.delete('/products/delete/:id', deleteProduct);
 
-// Get subcategories by category ID
+// Get subcategories by category ID (AJAX)
 router.get('/subcategories/:categoryId', async (req, res) => {
   const subs = await Subcategory.find({ category: req.params.categoryId });
   res.json(subs);

@@ -59,7 +59,7 @@ app.use((req, res, next) => {
 // Static File Serving
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/static', express.static(path.join(__dirname, 'src', 'assets')));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static('public/uploads'));
 
 // View Engine Configuration
 app.set('view engine', 'ejs');

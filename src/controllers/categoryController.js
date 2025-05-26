@@ -509,3 +509,77 @@ export const getProducts = async (req, res) => {
     });
   }
 };
+
+// Edit Product
+export const showEditProduct = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const product = await Product.findById(id).populate('subcategory').lean();
+    const categories = await Category.find().lean();
+    const subcategories = await Subcategory.find().populate('category').lean();
+
+    if (!product) {
+      return res.status(404).render('admin/editProduct', {
+        product: null,
+        categories,
+        subcategories,
+        error: 'Product not found.',
+        success: null
+      });
+    }
+
+    res.render('admin/editProduct', {
+      product,
+      categories,
+      subcategories,
+      error: null,
+      success: null
+    });
+  } catch (error) {
+    console.error('Error fetching product for edit:', error);
+    res.status(500).render('admin/editProduct', {
+      product: null,
+      categories: [],
+      subcategories: [],
+      error: 'Error fetching product.',
+      success: null
+    });
+  }
+};
+
+// Update Product
+export const editProduct = async (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, subcategory } = req.body;
+
+  try {
+    let updateData = { name, description, price, subcategory };
+
+    // Handle image upload
+    if (req.files && req.files.length > 0) {
+      updateData.image_uri = `/uploads/product_images/${req.files[0].filename}`;
+    }
+
+    await Product.findByIdAndUpdate(id, updateData);
+
+    // Optionally, you can fetch the updated product data and return it
+    const updatedProduct = await Product.findById(id).populate('subcategory').lean();
+
+    res.render('admin/editProduct', {
+      product: updatedProduct,
+      categories: await Category.find().lean(),
+      subcategories: await Subcategory.find().populate('category').lean(),
+      error: null,
+      success: 'Product updated successfully.'
+    });
+  } catch (error) {
+    console.error('Error updating product:', error);
+    res.render('admin/editProduct', {
+      product: null,
+      categories: await Category.find().lean(),
+      subcategories: await Subcategory.find().populate('category').lean(),
+      error: 'Error updating product.',
+      success: null
+    });
+  }
+};

@@ -1096,29 +1096,22 @@
   </nav>
 
   <!-- Profile Dropdown / Login Modal -->
-  <% if (user) { %>
-    <div class="profile-dropdown" id="profileDropdown">
-      <p><strong>Name:</strong> <%= user.name || 'Not provided' %></p>
-      <p><strong>Email:</strong> <%= user.email %></p>
-      <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
-      <p><strong>Address:</strong> <%= user.address || 'Not provided' %></p>
-      <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
-      <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+  <div class="profile-dropdown" id="profileDropdown" style="display:none;">
+    <div id="profileContent">
+      <p>Loading...</p>
     </div>
-  <% } else { %>
-    <div class="modal" id="loginModal" style="display:none;">
-      <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
-        <h3>Please log in or register</h3>
-        <p>Login or register to proceed with this action.</p>
-        <button onclick="window.location.href='/login?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Login Page">Login</button>
-        <button onclick="window.location.href='/register?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Register Page">Register</button>
-        <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
-          Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
-        </p>
-      </div>
+    <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+    <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+  </div>
+  <div class="modal" id="loginModal" style="display:none;">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+      <h3>Please log in or register</h3>
+      <p>Login or register to proceed with this action.</p>
+      <button onclick="window.location.href='/login?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Login Page">Login</button>
+      <button onclick="window.location.href='/register?redirect=/api/products/productdetails?id=<%= product._id %>'" aria-label="Go to Register Page">Register</button>
     </div>
-  <% } %>
+  </div>
 
   <!-- Category Bar -->
   <div class="all-categories-bar">
@@ -1395,12 +1388,81 @@
       });
     }
 
+    async function fetchUserProfile() {
+      try {
+        const res = await fetch('/api/users/profile', { credentials: 'include' });
+        const data = await res.json();
+        return data.success && data.user ? data.user : null;
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function encodeHTML(str) {
+      return String(str).replace(/[&<>"']/g, function (match) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[match];
+      });
+    }
+
+    async function renderProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      const content = document.getElementById('profileContent');
+      if (!dropdown || !content) return;
+      content.innerHTML = '<div class="spinner"></div>';
+      const user = await fetchUserProfile();
+      if (user) {
+        const safeName = user.name ? encodeHTML(user.name) : 'Not provided';
+        const safeEmail = user.email ? encodeHTML(user.email) : 'Not provided';
+        const safePhone = user.phone ? encodeHTML(user.phone) : 'Not provided';
+        let safeAddress = 'Not provided';
+        if (user.address && (
+          user.address.street ||
+          user.address.city ||
+          user.address.state ||
+          user.address.pinCode ||
+          user.address.country
+        )) {
+          safeAddress = encodeHTML([
+            user.address.street,
+            user.address.city,
+            user.address.state,
+            user.address.pinCode,
+            user.address.country
+          ].filter(Boolean).join(', '));
+        } else if (Array.isArray(user.addresses) && user.addresses[0]) {
+          safeAddress = encodeHTML([
+            user.addresses[0].street,
+            user.addresses[0].city,
+            user.addresses[0].state,
+            user.addresses[0].pinCode,
+            user.addresses[0].country
+          ].filter(Boolean).join(', '));
+        }
+        content.innerHTML = `
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> ${safeEmail}</p>
+          <p><strong>Phone:</strong> ${safePhone}</p>
+          <p><strong>Address:</strong> ${safeAddress}</p>
+        `;
+      } else {
+        content.innerHTML = `<p>Error loading profile. Please try again or log in.</p>`;
+      }
+    }
+
     function toggleProfile() {
-      checkLoginBeforeAction(() => {
+      checkLoginBeforeAction(async () => {
         const dropdown = document.getElementById('profileDropdown');
         if (dropdown) {
           profileVisible = !profileVisible;
           dropdown.classList.toggle('show', profileVisible);
+          dropdown.style.display = profileVisible ? 'flex' : 'none';
+          if (profileVisible) await renderProfileDropdown();
         }
       });
     }
@@ -1609,6 +1671,7 @@
       const dropdown = document.getElementById('profileDropdown');
       if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
         dropdown.classList.remove('show');
+        dropdown.style.display = 'none';
         profileVisible = false;
       }
 

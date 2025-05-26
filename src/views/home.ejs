@@ -228,7 +228,7 @@
     }
 
     .profile-dropdown.show {
-      display: flex;
+      display: flex !important;
       flex-direction: column;
     }
 
@@ -298,7 +298,7 @@
     }
 
     .modal-content button {
-      padding: 10px 20px;
+      padding: 10px Predicting 20px;
       background: var(--primary-color);
       color: #fff;
       border: none;
@@ -1035,6 +1035,21 @@
       border-color: var(--primary-color);
     }
 
+    /* Spinner for Loading */
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .navbar {
@@ -1411,28 +1426,22 @@
   </nav>
 
   <!-- Profile Dropdown / Login Modal -->
-  <% if (user) { %>
-    <div class="profile-dropdown" id="profileDropdown">
-      <div id="profileContent">
-        <p>Loading...</p>
-      </div>
-      <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
-      <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+  <div class="profile-dropdown" id="profileDropdown" style="display:none;">
+    <div id="profileContent">
+      <p>Loading...</p>
     </div>
-  <% } else { %>
-    <div class="modal" id="loginModal" style="display:none;">
-      <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
-        <h3>Please log in or register</h3>
-        <p>Login or register to proceed with this action.</p>
-        <button onclick="window.location.href='/login?redirect=/'" aria-label="Go to Login Page">Login</button>
-        <button onclick="window.location.href='/register?redirect=/'" aria-label="Go to Register Page">Register</button>
-        <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
-          Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
-        </p>
-      </div>
+    <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+    <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+  </div>
+  <div class="modal" id="loginModal" style="display:none;">
+    <div class="modal-content">
+      <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+      <h3>Please log in or register</h3>
+      <p>Login or register to proceed with this action.</p>
+      <button onclick="window.location.href='/login?redirect=/'" aria-label="Go to Login Page">Login</button>
+      <button onclick="window.location.href='/register?redirect=/'" aria-label="Go to Register Page">Register</button>
     </div>
-  <% } %>
+  </div>
 
   <!-- Category Bar -->
   <div class="category-bar">
@@ -1556,7 +1565,6 @@
   </section>
 
   <!-- Category Sections -->
-   <!-- Category Sections -->
   <% 
     const maxProducts = 16; 
   %>
@@ -1775,84 +1783,64 @@
   <div class="sticky-cart" onclick="goToCart()"></div>
 
   <script>
-  // Check if user is logged in via /check-login endpoint
-  async function isUserLoggedIn() {
-    try {
-      const res = await fetch('/check-login');
-      const data = await res.json();
-      return data.loggedIn;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  // Logout function
-  async function logout() {
-    try {
-      const token = localStorage.getItem('token');
-      await fetch('/api/users/logout', {
-        method: 'POST',
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
-    } catch (error) {
-      // Ignore error, just clear local data
-    } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('cart');
-      profileVisible = false;
-      const dropdown = document.getElementById('profileDropdown');
-      if (dropdown) dropdown.classList.remove('show');
-      window.location.href = '/login';
-    }
-  }
-
-  // Check login before protected action
-  function checkLoginBeforeAction(actionCallback) {
-    fetch('/check-login')
-      .then(res => res.json())
-      .then(data => {
-        if (data.loggedIn) {
-          actionCallback();
-        } else {
-          document.getElementById('loginModal').style.display = 'flex';
+    // Check if user is logged in via /check-login endpoint
+    async function isUserLoggedIn() {
+      try {
+        const res = await fetch('/check-login', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!res.ok) {
+          throw new Error(`HTTP error! Status: ${res.status}`);
         }
-      })
-      .catch(() => {
-        document.getElementById('loginModal').style.display = 'flex';
-      });
-  }
+        const data = await res.json();
+        return !!data.loggedIn;
+      } catch (error) {
+        console.error('Error checking login status:', error);
+        return false;
+      }
+    }
 
-  // SEARCH BAR: Filter products by name (client-side)
-  function searchProducts(query) {
-    query = query.trim().toLowerCase();
-    // Search in all-products section
-    document.querySelectorAll('.all-products-grid .product-item').forEach(card => {
-      const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
-      card.style.display = name.includes(query) ? '' : 'none';
-    });
-    // Search in each category section
-    document.querySelectorAll('.category-box .product-item').forEach(card => {
-      const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
-      card.style.display = name.includes(query) ? '' : 'none';
-    });
-  }
+    // Logout function
+    async function logout() {
+      try {
+        const token = localStorage.getItem('token');
+        await fetch('/api/users/logout', {
+          method: 'POST',
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+      } catch (error) {
+        // Ignore error, just clear local data
+      } finally {
+        localStorage.removeItem('token');
+        localStorage.removeItem('cart');
+        profileVisible = false;
+        const dropdown = document.getElementById('profileDropdown');
+        if (dropdown) dropdown.classList.remove('show');
+        window.location.href = '/login';
+      }
+    }
 
-  // Debounce utility
-  function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-      const later = () => {
-        clearTimeout(timeout);
-        func(...args);
-      };
-      clearTimeout(timeout);
-      timeout = setTimeout(later, wait);
-    };
-  }
+    // Check login before protected action
+    function checkLoginBeforeAction(actionCallback) {
+      isUserLoggedIn()
+        .then(isLoggedIn => {
+          if (isLoggedIn) {
+            actionCallback();
+          } else {
+            document.getElementById('loginModal').style.display = 'flex';
+          }
+        })
+        .catch(() => {
+          document.getElementById('loginModal').style.display = 'flex';
+        });
+    }
 
-  // Add to Cart with login check
-  function tryAddToCart(productId, productName, productPrice, productImage, productDescription) {
-    checkLoginBeforeAction(() => {
+    // Add to Cart
+    function addToCart(productId, productName, productPrice, productImage, productDescription) {
       let cart = JSON.parse(localStorage.getItem('cart')) || [];
       const existing = cart.find(item => item.id === productId);
       if (existing) {
@@ -1862,7 +1850,7 @@
           id: productId,
           name: productName,
           price: parseFloat(productPrice),
-          image: productImage || 'https://source.unsplash.com/200x180/?plant',
+          image: productImage || '/static/placeholder.png',
           description: productDescription,
           quantity: 1
         });
@@ -1875,156 +1863,252 @@
         popup.classList.remove('show');
         setTimeout(() => popup.classList.add('hidden'), 500);
       }, 2000);
-    });
-  }
-
-  // Close modal
-  function closeModal() {
-    document.getElementById('loginModal').style.display = 'none';
-  }
-
-  // Category Sidebar Toggle
-  let scrollPosition = 0;
-  function toggleCategorySidebar() {
-    const sidebar = document.getElementById('categorySidebar');
-    if (sidebar.classList.contains('show')) {
-      sidebar.classList.remove('show');
-      document.body.classList.remove('body-no-scroll');
-      window.scrollTo(0, scrollPosition);
-    } else {
-      scrollPosition = window.pageYOffset;
-      sidebar.classList.add('show');
-      document.body.classList.add('body-no-scroll');
     }
-  }
 
-  // Go to Cart with login check
-  function goToCart() {
-    checkLoginBeforeAction(() => {
-      window.location.href = '/cart';
-    });
-  }
+    // Add to Cart with login check
+    function tryAddToCart(productId, productName, productPrice, productImage, productDescription) {
+      checkLoginBeforeAction(() => {
+        addToCart(productId, productName, productPrice, productImage, productDescription);
+      });
+    }
 
-  // Profile dropdown with login check
-  let profileVisible = false;
-  function toggleProfile() {
-    checkLoginBeforeAction(() => {
+    // --- Profile Dropdown Logic ---
+    let profileVisible = false;
+    async function toggleProfile() {
       const dropdown = document.getElementById('profileDropdown');
-      if (dropdown) {
-        profileVisible = !profileVisible;
-        dropdown.style.display = profileVisible ? 'flex' : 'none';
-        if (profileVisible) renderProfileDropdown();
+      if (!dropdown) return;
+      const isLoggedIn = await isUserLoggedIn();
+      if (!isLoggedIn) {
+        document.getElementById('loginModal').style.display = 'flex';
+        return;
       }
-    });
-  }
-
-  async function renderProfileDropdown() {
-    const dropdown = document.getElementById('profileDropdown');
-    const content = document.getElementById('profileContent');
-    if (!dropdown || !content) return;
-
-    const user = await fetchUserProfile();
-    if (user) {
-      content.innerHTML = `
-        <p><strong>Name:</strong> ${user.name || 'Not provided'}</p>
-        <p><strong>Email:</strong> ${user.email || 'Not provided'}</p>
-        <p><strong>Phone:</strong> ${user.phone || 'Not provided'}</p>
-        <p><strong>Address:</strong> ${
-          user.address && (user.address.street || user.address.city || user.address.state || user.address.pinCode)
-            ? [user.address.street, user.address.city, user.address.state, user.address.pinCode].filter(Boolean).join(', ')
-            : 'Not provided'
-        }</p>
-      `;
-    } else {
-      content.innerHTML = `<p>Please log in to view your profile.</p>`;
+      profileVisible = !profileVisible;
+      dropdown.classList.toggle('show', profileVisible);
+      dropdown.style.display = profileVisible ? 'flex' : 'none';
+      if (profileVisible) await renderProfileDropdown();
     }
-  }
 
-  // Check login, then fetch user profile if logged in
-  async function fetchUserProfile() {
-    try {
-      const res = await fetch('/api/users/profile', { credentials: 'include' });
-      const data = await res.json();
-      if (data.success && data.user) {
-        return data.user;
-      } else {
+    async function fetchUserProfile() {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await fetch('/api/users/profile', {
+          method: 'GET',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+        if (!res.ok) throw new Error(`HTTP error! Status: ${res.status}`);
+        const data = await res.json();
+        return data.success && data.user ? data.user : null;
+      } catch (error) {
         return null;
       }
-    } catch (error) {
-      console.error('Profile fetch error:', error);
-      return null;
     }
-  }
 
-  // Hero slider
-  let currentHeroSlide = 0;
-  function updateHeroSlide() {
-    const heroSlides = document.querySelectorAll('.hero-slider .slide');
-    const heroDots = document.querySelectorAll('.hero-nav-dot');
-    heroSlides.forEach(slide => slide.classList.remove('active'));
-    heroDots.forEach(dot => dot.classList.remove('active'));
-    if (heroSlides[currentHeroSlide]) {
-      heroSlides[currentHeroSlide].classList.add('active');
-      heroDots[currentHeroSlide].classList.add('active');
+    function encodeHTML(str) {
+      return String(str).replace(/[&<>"']/g, function (match) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[match];
+      });
     }
-  }
-  function goToHeroSlide(index) {
-    const heroSlides = document.querySelectorAll('.hero-slider .slide');
-    if (index >= 0 && index < heroSlides.length) {
-      currentHeroSlide = index;
-      updateHeroSlide();
-    }
-  }
 
-  document.addEventListener('DOMContentLoaded', function() {
-    updateHeroSlide();
-    setInterval(() => {
+    async function renderProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      const content = document.getElementById('profileContent');
+      if (!dropdown || !content) return;
+      content.innerHTML = '<div class="spinner"></div>';
+      const user = await fetchUserProfile();
+      if (user) {
+        const safeName = user.name ? encodeHTML(user.name) : 'Not provided';
+        const safeEmail = user.email ? encodeHTML(user.email) : 'Not provided';
+        const safePhone = user.phone ? encodeHTML(user.phone) : 'Not provided';
+        // FIX: Support both user.address (object) and user.addresses[0] (array)
+        let safeAddress = 'Not provided';
+        if (user.address && (
+          user.address.street ||
+          user.address.city ||
+          user.address.state ||
+          user.address.pinCode ||
+          user.address.country
+        )) {
+          safeAddress = encodeHTML([
+            user.address.street,
+            user.address.city,
+            user.address.state,
+            user.address.pinCode,
+            user.address.country
+          ].filter(Boolean).join(', '));
+        } else if (Array.isArray(user.addresses) && user.addresses[0]) {
+          safeAddress = encodeHTML([
+            user.addresses[0].street,
+            user.addresses[0].city,
+            user.addresses[0].state,
+            user.addresses[0].pinCode,
+            user.addresses[0].country
+          ].filter(Boolean).join(', '));
+        }
+        content.innerHTML = `
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> ${safeEmail}</p>
+          <p><strong>Phone:</strong> ${safePhone}</p>
+          <p><strong>Address:</strong> ${safeAddress}</p>
+        `;
+      } else {
+        content.innerHTML = `<p>Error loading profile. Please try again or log in.</p>`;
+      }
+    }
+
+    // Close profile dropdown/modal on outside click
+    window.addEventListener('click', function(e) {
+      const dropdown = document.getElementById('profileDropdown');
+      if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
+        dropdown.classList.remove('show');
+        dropdown.style.display = 'none';
+        profileVisible = false;
+      }
+      const modal = document.getElementById('loginModal');
+      if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // SEARCH BAR: Filter products by name (client-side)
+    function searchProducts(query) {
+      query = query.trim().toLowerCase();
+      document.querySelectorAll('.all-products-grid .product-item').forEach(card => {
+        const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+        card.style.display = name.includes(query) ? '' : 'none';
+      });
+      document.querySelectorAll('.category-box .product-item').forEach(card => {
+        const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+        card.style.display = name.includes(query) ? '' : 'none';
+      });
+    }
+
+    // Debounce utility
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    // Category Sidebar Toggle
+    let scrollPosition = 0;
+    function toggleCategorySidebar() {
+      const sidebar = document.getElementById('categorySidebar');
+      if (sidebar.classList.contains('show')) {
+        sidebar.classList.remove('show');
+        document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
+      } else {
+        scrollPosition = window.pageYOffset;
+        sidebar.classList.add('show');
+        document.body.classList.add('body-no-scroll');
+      }
+    }
+
+    // Go to Cart with login check
+    function goToCart() {
+      checkLoginBeforeAction(() => {
+        window.location.href = '/cart';
+      });
+    }
+
+    // Hero slider
+    let currentHeroSlide = 0;
+    function updateHeroSlide() {
       const heroSlides = document.querySelectorAll('.hero-slider .slide');
-      currentHeroSlide = (currentHeroSlide + 1) % heroSlides.length;
-      updateHeroSlide();
-    }, 5000);
-  });
-
-  // Product image slider
-  function prevImage(button) {
-    const slider = button.closest('.product-images').querySelector('.product-slider');
-    const images = slider.querySelectorAll('img');
-    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
-    images[current].classList.remove('active');
-    current = (current - 1 + images.length) % images.length;
-    images[current].classList.add('active');
-  }
-
-  function nextImage(button) {
-    const slider = button.closest('.product-images').querySelector('.product-slider');
-    const images = slider.querySelectorAll('img');
-    let current = Array.from(images).findIndex(img => img.classList.contains('active'));
-    images[current].classList.remove('active');
-    current = (current + 1) % images.length;
-    images[current].classList.add('active');
-  }
-
-  // Back to Top
-  window.addEventListener('scroll', function() {
-    const backToTop = document.getElementById('back-to-top');
-    if (window.scrollY > 300) {
-      backToTop.classList.add('show');
-    } else {
-      backToTop.classList.remove('show');
+      const heroDots = document.querySelectorAll('.hero-nav-dot');
+      heroSlides.forEach(slide => slide.classList.remove('active'));
+      heroDots.forEach(dot => dot.classList.remove('active'));
+      if (heroSlides[currentHeroSlide]) {
+        heroSlides[currentHeroSlide].classList.add('active');
+        heroDots[currentHeroSlide].classList.add('active');
+      }
     }
-  });
+    function goToHeroSlide(index) {
+      const heroSlides = document.querySelectorAll('.hero-slider .slide');
+      if (index >= 0 && index < heroSlides.length) {
+        currentHeroSlide = index;
+        updateHeroSlide();
+      }
+    }
 
-  document.getElementById('back-to-top').addEventListener('click', function() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+    document.addEventListener('DOMContentLoaded', function() {
+      updateHeroSlide();
+      setInterval(() => {
+        const heroSlides = document.querySelectorAll('.hero-slider .slide');
+        currentHeroSlide = (currentHeroSlide + 1) % heroSlides.length;
+        updateHeroSlide();
+      }, 5000);
+    });
 
-  // Newsletter
-  function handleNewsletterSubmit(event) {
-    event.preventDefault();
-    alert('Subscribed successfully!');
-    event.target.reset();
-  }
+    // Product image slider
+    function prevImage(button) {
+      const slider = button.closest('.product-images').querySelector('.product-slider');
+      const images = slider.querySelectorAll('img');
+      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+      images[current].classList.remove('active');
+      current = (current - 1 + images.length) % images.length;
+      images[current].classList.add('active');
+    }
+
+    function nextImage(button) {
+      const slider = button.closest('.product-images').querySelector('.product-slider');
+      const images = slider.querySelectorAll('img');
+      let current = Array.from(images).findIndex(img => img.classList.contains('active'));
+      images[current].classList.remove('active');
+      current = (current + 1) % images.length;
+      images[current].classList.add('active');
+    }
+
+    // Back to Top
+    window.addEventListener('scroll', function() {
+      const backToTop = document.getElementById('back-to-top');
+      if (window.scrollY > 300) {
+        backToTop.classList.add('show');
+      } else {
+        backToTop.classList.remove('show');
+      }
+    });
+
+    document.getElementById('back-to-top').addEventListener('click', function() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Newsletter
+    function handleNewsletterSubmit(event) {
+      event.preventDefault();
+      alert('Subscribed successfully!');
+      event.target.reset();
+    }
+
+    // Show all products
+    function showAllProducts(button) {
+      const categorySection = button.closest('.category');
+      const hiddenProducts = categorySection.querySelectorAll('.product-item.mobile-hidden');
+      hiddenProducts.forEach(product => product.classList.remove('mobile-hidden'));
+      button.style.display = 'none';
+    }
   </script>
-
 </body>
 </html>

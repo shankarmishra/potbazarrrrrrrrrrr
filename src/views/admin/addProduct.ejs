@@ -394,7 +394,7 @@
     </div>
 
     <form
-      action="<%= editProduct ? '/category/products/edit/' + editProduct._id : '/category/products/add' %>"
+      action="<%= editProduct ? '/category/products/edit/' + editProduct._id : '/category/product/add' %>"
       method="POST"
       enctype="multipart/form-data"
       id="productForm"
@@ -484,7 +484,6 @@
           name="images"
           accept="image/*"
           multiple
-          <%= editProduct ? '' : 'required' %>
         />
         <div class="form-helper">Upload 2-5 images. Hold Ctrl (Windows) or Command (Mac) to select multiple images.</div>
         
@@ -492,7 +491,7 @@
           <div class="form-helper">Current Images:</div>
           <div class="image-preview">
             <% editProduct.images.forEach((img) => { %>
-              <img src="<%= img %>" alt="Current product image" />
+              <img src="<%= img %>" alt="Current product image" style="max-width:100px;max-height:100px;margin:5px;" />
             <% }); %>
           </div>
           <div class="form-helper">If you upload new images, the current ones will be replaced.</div>

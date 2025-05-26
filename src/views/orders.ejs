@@ -13,6 +13,7 @@
       --secondary-text-color: #666;
       --bg-color: #f0f7e7;
       --card-bg: #ffffff;
+      --error-color: #e53e3e;
       font-size: 16px;
     }
 
@@ -119,12 +120,6 @@
       color: #fff;
     }
 
-    .cart-icon {
-      width: 24px;
-      height: 24px;
-      filter: brightness(0) invert(1);
-    }
-
     .three-dots {
       display: none;
       cursor: pointer;
@@ -179,6 +174,14 @@
       outline: none;
     }
 
+    .profile-dropdown button.logout-btn {
+      background: var(--error-color);
+    }
+
+    .profile-dropdown button.logout-btn:hover {
+      background: #b71c1c;
+    }
+
     /* Login Modal */
     .modal {
       display: none;
@@ -191,6 +194,10 @@
       background: rgba(0, 0, 0, 0.5);
       justify-content: center;
       align-items: center;
+    }
+
+    .modal.show, .modal[style*="flex"] {
+      display: flex !important;
     }
 
     .modal-content {
@@ -419,6 +426,41 @@
       width: 100vw;
     }
 
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-color);
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 6px;
+      z-index: 1100;
+      opacity: 0;
+      transition: opacity 0.5s;
+      pointer-events: none;
+    }
+
+    .popup.show {
+      opacity: 1;
+    }
+
+    /* Spinner */
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid var(--primary-color);
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
     @media (max-width: 768px) {
       .navbar {
         padding: 0.75rem 1rem;
@@ -491,85 +533,104 @@
 <body>
   <!-- Navbar -->
   <nav class="navbar">
-    <button class="three-dots" id="threeDotsBtn" aria-label="Open Menu" onclick="toggleCategorySidebar()">☰</button>
+    <button class="three-dots" id="threeDotsBtn" onclick="toggleCategorySidebar()" aria-label="Open Categories">☰</button>
     <a href="/" class="nav-logo">
-      <img src="/static/logo.png" alt="POTBAZAR Logo" loading="lazy" onerror="this.src='/images/default-logo.png'">
-      POTBAZAR<span>🌱</span>
+
+      POTBAZAR<span>🌿</span>
     </a>
     <div class="nav-links">
       <a href="/">Home</a>
       <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a>
       <a href="/#about">About</a>
       <a href="/policy">Policy</a>
-      <a href="/cart">Cart</a>
+      <a href="/cart" onclick="event.preventDefault(); goToCart();" aria-label="Cart">Cart</a>
     </div>
     <div class="nav-icons">
       <input
         type="text"
-        placeholder="Search products..."
+        placeholder="Search orders..."
         class="search-bar"
         onkeyup="debounceSearch(this.value)"
-        aria-label="Search products"
-      />
-      <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">
-        <img src="/static/cart-icon.png" alt="Cart" class="cart-icon" loading="lazy" onerror="this.src='/images/default-cart.png'">
-      </button>
-      <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Toggle Profile">👤</button>
+        aria-label="Search orders"
+      >
+      <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">🛒</button>
+      <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Profile">👤</button>
     </div>
   </nav>
 
   <!-- Profile Dropdown / Login Modal -->
-  <div class="profile-dropdown" id="profileDropdown" role="menu">
-    <p><strong>Name:</strong> <%= user?.name || 'Not provided' %></p>
-    <p><strong>Email:</strong> <%= user?.email || 'Not provided' %></p>
-    <p><strong>Phone:</strong> <%= user?.phone || 'Not provided' %></p>
-    <p><strong>Address:</strong> <%= user?.addresses?.[0] ? `${user.addresses[0].street}, ${user.addresses[0].city}, ${user.addresses[0].state}, ${user.addresses[0].pinCode}, ${user.addresses[0].country}` : 'Not provided' %></p>
-    <button onclick="window.location.href='/orders'" role="menuitem">My Orders</button>
-    <button onclick="logout()" role="menuitem">Logout</button>
-  </div>
-  <div class="modal" id="loginModal" role="dialog" aria-labelledby="loginModalTitle">
-    <div class="modal-content">
-      <button class="close-btn" onclick="closeModal()" aria-label="Close modal">×</button>
-      <h3 id="loginModalTitle">Please log in or register to proceed</h3>
-      <button onclick="window.location.href='/login'">Login</button>
-      <button onclick="window.location.href='/register'">Register</button>
-      <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
-        Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
-      </p>
+  <% if (user) { %>
+    <div class="profile-dropdown" id="profileDropdown">
+      <div id="profileContent">
+        <p>Loading...</p>
+      </div>
+      <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+      <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
     </div>
-  </div>
+  <% } else { %>
+    <div class="modal" id="loginModal" style="display:none;">
+      <div class="modal-content">
+        <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+        <h3>Please log in or register</h3>
+        <p>Login or register to proceed with this action.</p>
+        <button onclick="window.location.href='/login?redirect=/orders'" aria-label="Go to Login Page">Login</button>
+        <button onclick="window.location.href='/register?redirect=/orders'" aria-label="Go to Register Page">Register</button>
+        <p style="margin-top: 10px; font-size: 14px; color: var(--secondary-text-color);">
+          Forgot your password? <a href="/forgot-password" style="color: var(--secondary-color); text-decoration: none;">Reset it here</a>
+        </p>
+      </div>
+    </div>
+  <% } %>
 
   <!-- Category Sidebar -->
-  <div class="category-sidebar" id="categorySidebar" role="navigation" aria-label="Mobile Categories">
-    <button class="close-btn" onclick="toggleCategorySidebar()" aria-label="Close Menu">×</button>
+  <div class="category-sidebar" id="categorySidebar">
+    <button class="close-btn" onclick="toggleCategorySidebar()" aria-label="Close Categories">×</button>
     <h3 style="margin-bottom:1rem;">Menu</h3>
-    <div class="sidebar-category"><a href="/">Home</a></div>
-    <div class="sidebar-category"><a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener">Blog</a></div>
-    <div class="sidebar-category"><a href="/#about">About</a></div>
-    <div class="sidebar-category"><a href="/policy">Policy</a></div>
-    <div class="sidebar-category"><a href="/cart">Cart</a></div>
+    <div class="sidebar-category">
+      <a href="/"><strong>Home</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="https://www.homegardennet.com/?m=1" target="_blank" rel="noopener"><strong>Blog</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/#about"><strong>About</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/policy"><strong>Policy</strong></a>
+    </div>
+    <div class="sidebar-category">
+      <a href="/cart"><strong>Cart</strong></a>
+    </div>
+    <% if (user) { %>
+      <div class="sidebar-category">
+        <a href="/orders"><strong>My Orders</strong></a>
+      </div>
+    <% } %>
     <hr style="margin: 1rem 0; border: none; border-top: 1px solid #fff; opacity: 0.2;">
     <h3 style="margin-bottom:1rem;">Categories</h3>
-    <% if (categories?.length) { %>
-      <% categories.forEach(category => { %>
-        <div class="sidebar-category">
-          <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
-            <strong><%= category.name %></strong>
-          </a>
-          <% if (category.subcategories?.length) { %>
-            <ul class="sidebar-subcategories">
-              <% category.subcategories.forEach(sub => { %>
-                <li>
-                  <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name || sub) %>">
-                    <%= sub.name || sub %>
-                  </a>
-                </li>
-              <% }) %>
-            </ul>
-          <% } %>
-        </div>
-      <% }) %>
-    <% } %>
+    <% categories = categories || [
+      { name: 'Plants', subcategories: ['Indoor Plants', 'Outdoor Plants', 'Flowering Plants'] },
+      { name: 'Seeds', subcategories: ['Vegetable Seeds', 'Flower Seeds', 'Herb Seeds'] },
+      { name: 'Fertilizers', subcategories: ['Organic', 'Chemical', 'Liquid'] }
+    ]; %>
+    <% categories.forEach(category => { %>
+      <div class="sidebar-category">
+        <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>">
+          <strong><%= category.name %></strong>
+        </a>
+        <% if (category.subcategories && category.subcategories.length > 0) { %>
+          <ul class="sidebar-subcategories">
+            <% category.subcategories.forEach(sub => { %>
+              <li>
+                <a href="/api/products/products?category=<%= encodeURIComponent(category.name) %>&subcategory=<%= encodeURIComponent(sub.name ? sub.name : sub) %>">
+                  <%= sub.name ? sub.name : sub %>
+                </a>
+              </li>
+            <% }) %>
+          </ul>
+        <% } %>
+      </div>
+    <% }) %>
   </div>
 
   <!-- Orders Section -->
@@ -586,7 +647,12 @@
             <div class="order-items">
               <% order.items?.forEach(item => { %>
                 <div class="order-item">
-                  <img src="<%= item.product?.images?.[0] || '/images/default-image.jpg' %>" alt="<%= item.product?.name || 'Product' %>" loading="lazy">
+                  <% if (item.product?.images?.[0]) { %>
+                    <img src="<%= item.product.images[0] %>" alt="<%= item.product?.name || 'Product' %>" loading="lazy">
+                  <% } else { %>
+                    <!-- Optionally, show a static placeholder or nothing -->
+                    <!-- <img src="/static/cart-icon.png" alt="No image" loading="lazy"> -->
+                  <% } %>
                   <div class="order-item-details">
                     <p><strong><%= item.product?.name || 'Unknown Product' %></strong></p>
                     <p>Quantity: <%= item.quantity %></p>
@@ -624,7 +690,7 @@
         <p>Subscribe for the latest plant care tips and offers!</p>
         <form onsubmit="handleNewsletterSubmit(event)">
           <input type="email" placeholder="Enter your email" required aria-label="Email for newsletter">
-          <button type="submit">Subscribe</button>
+          <button type="submit" aria-label="Subscribe">Subscribe</button>
         </form>
       </div>
     </div>
@@ -635,26 +701,31 @@
   </footer>
 
   <script>
-    const API_BASE_URL = 'http://localhost:3000';
-
-    async function apiRequest(method, url, data, token) {
+    // API request helper
+    async function apiRequest(method, url, data = null, token = null) {
       try {
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const headers = {
+          'Content-Type': 'application/json',
+        };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
         if (data?._csrf) headers['X-CSRF-Token'] = data._csrf;
-        const response = await axios.request({
+
+        const config = {
           method,
-          url: `${API_BASE_URL}${url}`,
-          data,
+          url,
           headers,
-          withCredentials: true
-        });
+          withCredentials: true,
+        };
+        if (data && method !== 'GET') config.data = data;
+
+        const response = await axios(config);
         return response.data;
       } catch (error) {
         if (error.response?.status === 401 && token) {
           const refreshToken = localStorage.getItem('refreshToken');
           if (refreshToken) {
             try {
-              const refreshResponse = await axios.post(`${API_BASE_URL}/api/users/refresh-token`, { refreshToken });
+              const refreshResponse = await axios.post('/api/users/refresh-token', { refreshToken });
               const { token: newAccessToken, refreshToken: newRefreshToken } = refreshResponse.data.data;
               localStorage.setItem('accessToken', newAccessToken);
               localStorage.setItem('refreshToken', newRefreshToken);
@@ -669,73 +740,180 @@
             showModal();
           }
         }
+        console.error('API request error:', error.response?.data || error.message);
         throw error.response?.data || { message: 'Request failed' };
       }
     }
 
+    // Fetch user profile
+    async function fetchUserProfile() {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const data = await apiRequest('GET', '/api/users/profile', null, token);
+        return data.success && data.user ? data.user : null;
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+    }
+
+    // Encode HTML to prevent XSS
+    function encodeHTML(str) {
+      return str.replace(/[&<>"']/g, function (match) {
+        return {
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        }[match];
+      });
+    }
+
+    // Render profile dropdown
+    async function renderProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      const content = document.getElementById('profileContent');
+      if (!dropdown || !content) {
+        console.error('Profile dropdown or content element not found');
+        return;
+      }
+
+      content.innerHTML = '<div class="spinner"></div>';
+      const user = await fetchUserProfile();
+
+      if (user) {
+        const safeName = user.name ? encodeHTML(user.name) : 'Not provided';
+        const safeEmail = user.email ? encodeHTML(user.email) : 'Not provided';
+        const safePhone = user.phone ? encodeHTML(user.phone) : 'Not provided';
+        const safeAddress = user.addresses?.[0] ? encodeHTML([
+          user.addresses[0].street,
+          user.addresses[0].city,
+          user.addresses[0].state,
+          user.addresses[0].pinCode,
+          user.addresses[0].country
+        ].filter(Boolean).join(', ')) : 'Not provided';
+
+        content.innerHTML = `
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> ${safeEmail}</p>
+          <p><strong>Phone:</strong> ${safePhone}</p>
+          <p><strong>Address:</strong> ${safeAddress}</p>
+        `;
+      } else {
+        content.innerHTML = `<p>Error loading profile. Please try again or log in.</p>`;
+        showErrorPopup('Failed to load profile');
+      }
+    }
+
+    // Show error popup
+    function showErrorPopup(message) {
+      const popup = document.createElement('div');
+      popup.className = 'popup show';
+      popup.style.background = 'var(--error-color)';
+      popup.textContent = message;
+      document.body.appendChild(popup);
+      setTimeout(() => {
+        popup.classList.remove('show');
+        setTimeout(() => popup.remove(), 500);
+      }, 2000);
+    }
+
+    // Debounce search
     let debounceTimer;
     function debounceSearch(value) {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => searchOrders(value), 300);
     }
 
+    // Search orders
     function searchOrders(searchTerm) {
       searchTerm = searchTerm.trim().toLowerCase();
       const orders = document.querySelectorAll('.order-card');
+      let noOrders = document.querySelector('.no-orders');
       let anyVisible = false;
+
+      if (orders.length === 0 && !noOrders) {
+        noOrders = document.createElement('p');
+        noOrders.className = 'no-orders';
+        noOrders.textContent = 'No orders found.';
+        document.querySelector('.orders-section').appendChild(noOrders);
+        return;
+      }
+
       orders.forEach(order => {
         const orderId = order.querySelector('h3').textContent.toLowerCase();
         const matches = orderId.includes(searchTerm);
         order.style.display = matches ? '' : 'none';
         if (matches) anyVisible = true;
       });
-      const noOrders = document.querySelector('.no-orders');
-      if (!anyVisible && searchTerm) {
+
+      if (!anyVisible && orders.length > 0) {
         if (!noOrders) {
-          const message = document.createElement('p');
-          message.className = 'no-orders';
-          message.textContent = 'No orders found matching your search.';
-          document.querySelector('.orders-section').appendChild(message);
+          noOrders = document.createElement('p');
+          noOrders.className = 'no-orders';
+          document.querySelector('.orders-section').appendChild(noOrders);
         }
-      } else if (noOrders && searchTerm) {
         noOrders.textContent = 'No orders found matching your search.';
+      } else if (noOrders && anyVisible) {
+        noOrders.remove();
       }
     }
 
+    // Toggle category sidebar
+    let scrollPosition = 0;
     function toggleCategorySidebar() {
       const sidebar = document.getElementById('categorySidebar');
       const isShown = sidebar.classList.contains('show');
       sidebar.classList.toggle('show', !isShown);
       document.body.classList.toggle('body-no-scroll', !isShown);
+      if (isShown) {
+        window.scrollTo(0, scrollPosition);
+      } else {
+        scrollPosition = window.pageYOffset;
+      }
     }
 
+    // Toggle profile dropdown
     let profileVisible = false;
     async function toggleProfile() {
       const dropdown = document.getElementById('profileDropdown');
+      if (!dropdown) {
+        console.error('Profile dropdown element not found');
+        return;
+      }
+
       const token = localStorage.getItem('accessToken');
       if (!token) {
         showModal();
         return;
       }
+
       profileVisible = !profileVisible;
       dropdown.classList.toggle('show', profileVisible);
+      if (profileVisible) {
+        await renderProfileDropdown();
+      }
     }
 
+    // Show login modal
     function showModal() {
       const modal = document.getElementById('loginModal');
       modal.style.display = 'flex';
       document.body.classList.add('body-no-scroll');
     }
 
+    // Close modal
     function closeModal() {
       document.getElementById('loginModal').style.display = 'none';
       document.body.classList.remove('body-no-scroll');
     }
 
+    // Logout
     async function logout() {
       try {
         const token = localStorage.getItem('accessToken');
-        await apiRequest('post', '/api/users/logout', token);
+        await apiRequest('POST', '/api/users/logout', null, token);
       } catch (error) {
         console.error('Logout error:', error);
       } finally {
@@ -749,10 +927,12 @@
       }
     }
 
+    // Check if user is logged in
     function isUserLoggedIn() {
       return !!localStorage.getItem('accessToken');
     }
 
+    // Go to cart
     function goToCart() {
       if (!isUserLoggedIn()) {
         showModal();
@@ -761,17 +941,20 @@
       window.location.href = '/cart';
     }
 
+    // Handle newsletter submission
     function handleNewsletterSubmit(event) {
       event.preventDefault();
       alert('Subscribed successfully!');
       event.target.reset();
     }
 
+    // Close dropdowns/modal on outside click
     window.addEventListener('click', (e) => {
       const sidebar = document.getElementById('categorySidebar');
       if (sidebar?.classList.contains('show') && !sidebar.contains(e.target) && !e.target.closest('.three-dots')) {
         sidebar.classList.remove('show');
         document.body.classList.remove('body-no-scroll');
+        window.scrollTo(0, scrollPosition);
       }
       const dropdown = document.getElementById('profileDropdown');
       if (dropdown?.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
@@ -785,6 +968,7 @@
       }
     });
 
+    // Keyboard navigation for profile dropdown
     document.querySelectorAll('.profile-dropdown button').forEach(el => {
       el.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === 'Space') {
@@ -792,6 +976,13 @@
           el.click();
         }
       });
+    });
+
+    // Initialize profile dropdown on page load if user is logged in
+    document.addEventListener('DOMContentLoaded', () => {
+      if (isUserLoggedIn()) {
+        renderProfileDropdown();
+      }
     });
   </script>
 </body>

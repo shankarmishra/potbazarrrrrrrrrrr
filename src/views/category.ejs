@@ -224,17 +224,26 @@
       min-width: 240px;
       padding: 1rem;
       z-index: 1300;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+      animation: fadeInProfile 0.2s;
+    }
+
+    @keyframes fadeInProfile {
+      from { opacity: 0; transform: translateY(-10px);}
+      to { opacity: 1; transform: translateY(0);}
     }
 
     .profile-dropdown.show {
       display: flex;
-      flex-direction: column;
     }
 
     .profile-dropdown p {
       margin: 0.5rem 0;
       font-size: 14px;
       color: var(--text-color);
+      word-break: break-word;
     }
 
     .profile-dropdown button {
@@ -252,6 +261,36 @@
 
     .profile-dropdown button:hover {
       background: #276749;
+    }
+
+    .profile-dropdown button.logout-btn {
+      background: var(--error-color);
+    }
+
+    .profile-dropdown button.logout-btn:hover {
+      background: #b71c1c;
+    }
+
+    @media (max-width: 768px) {
+      .profile-dropdown {
+        top: 56px;
+        right: 0.5rem;
+        left: 0.5rem;
+        width: calc(100vw - 1rem);
+        min-width: unset;
+        max-width: 98vw;
+        padding: 0.75rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .profile-dropdown {
+        top: 48px;
+        right: 0.25rem;
+        left: 0.25rem;
+        width: calc(100vw - 0.5rem);
+        padding: 0.5rem;
+      }
     }
 
     /* Login Modal */
@@ -1104,32 +1143,28 @@
         placeholder="Search products..."
         class="search-bar"
         onkeyup="searchProducts(this.value)"
-        aria-label="Search products"
-      />
+        aria-label="Search products">
        <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Toggle Profile">👤</button>
     </div>
   </nav>
 
   <!-- Profile Dropdown / Login Modal -->
-  <% if (user) { %>
-    <div class="profile-dropdown" id="profileDropdown">
-      <p><strong>Name:</strong> <%= user.name || 'Not provided' %></p>
-      <p><strong>Email:</strong> <%= user.email %></p>
-      <p><strong>Phone:</strong> <%= user.phone || 'Not provided' %></p>
-      <p><strong>Address:</strong> <%= user.address || 'Not provided' %></p>
-      <button onclick="window.location.href='/orders'">My Orders</button>
-      <button onclick="logout()">Logout</button>
+  <div class="profile-dropdown" id="profileDropdown" style="display:none;">
+    <div id="profileContent">
+      <p>Loading...</p>
     </div>
-  <% } else { %>
-    <div class="modal" id="loginModal">
-      <div class="modal-content">
-        <button class="close-btn" onclick="closeModal()" aria-label="Close modal">×</button>
-        <h3>Please log in or register to proceed</h3>
-        <button onclick="window.location.href='/login'">Login</button>
-        <button onclick="window.location.href='/register'">Register</button>
-      </div>
-    </div>
-  <% } %>
+    <button onclick="window.location.href='/orders'" aria-label="View Orders">My Orders</button>
+    <button class="logout-btn" onclick="logout()" aria-label="Logout">Logout</button>
+  </div>
+  <div class="modal" id="loginModal" style="display:none;">
+     <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()" aria-label="Close Login Modal">×</button>
+            <h3>Please log in or register</h3>
+            <p>Login or register to proceed with this action.</p>
+            <button onclick="window.location.href='/login?redirect=/cart'" aria-label="Go to Login Page">Login</button>
+            <button onclick="window.location.href='/register?redirect=/cart'" aria-label="Go to Register Page">Register</button>
+        </div>
+  </div>
 
   <!-- Category Bar (Desktop) -->
   <div class="category-bar">
@@ -1339,13 +1374,30 @@
   <div class="popup" id="popup">Product added to cart!</div>
 
   <script>
+    // Search products by name (case-insensitive, trims whitespace)
     function searchProducts(searchTerm) {
       searchTerm = searchTerm.trim().toLowerCase();
       const products = document.querySelectorAll('#categoryProductGrid .product-item');
+      let anyVisible = false;
       products.forEach(product => {
         const name = product.getAttribute('data-name');
-        product.style.display = name.includes(searchTerm) ? '' : 'none';
+        const match = name.includes(searchTerm);
+        product.style.display = match ? '' : 'none';
+        if (match) anyVisible = true;
       });
+      // Optionally, show a "no products found" message
+      let noProducts = document.getElementById('no-products-found');
+      if (!anyVisible) {
+        if (!noProducts) {
+          noProducts = document.createElement('p');
+          noProducts.id = 'no-products-found';
+          noProducts.textContent = 'No products found.';
+          noProducts.style.textAlign = 'center';
+          document.getElementById('categoryProductGrid').parentNode.appendChild(noProducts);
+        }
+      } else if (noProducts) {
+        noProducts.remove();
+      }
     }
 
     function filterCategoryProducts() {
@@ -1448,31 +1500,96 @@
       }
     }
 
-    let profileVisible = false;
-    function toggleProfile() {
-      const dropdown = document.getElementById('profileDropdown');
-      const modal = document.getElementById('loginModal');
-      if (dropdown) {
-        profileVisible = !profileVisible;
-        dropdown.classList.toggle('show', profileVisible);
-      } else if (modal) {
-        modal.style.display = 'flex';
+    // Fetch user profile from API
+    async function fetchUserProfile() {
+      try {
+        const res = await fetch('/api/users/profile', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success && data.user) {
+          return data.user;
+        } else {
+          return null;
+        }
+      } catch (error) {
+        return null;
       }
     }
 
-    function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('cart');
+    // Encode HTML to prevent XSS
+    function encodeHTML(str) {
+      return String(str).replace(/[&<>"']/g, function (match) {
+        return ({
+          '&': '&amp;',
+          '<': '&lt;',
+          '>': '&gt;',
+          '"': '&quot;',
+          "'": '&#39;'
+        })[match];
+      });
+    }
+
+    // Render profile dropdown with fetched data
+    async function renderProfileDropdown() {
+      const dropdown = document.getElementById('profileDropdown');
+      const content = document.getElementById('profileContent');
+      if (!dropdown || !content) return;
+      content.innerHTML = '<div class="spinner"></div>';
+      const user = await fetchUserProfile();
+      if (user) {
+        const safeName = user.name ? encodeHTML(user.name) : 'Not provided';
+        const safeEmail = user.email ? encodeHTML(user.email) : 'Not provided';
+        const safePhone = user.phone ? encodeHTML(user.phone) : 'Not provided';
+        const safeAddress = user.addresses?.[0]
+          ? encodeHTML([
+              user.addresses[0].street,
+              user.addresses[0].city,
+              user.addresses[0].state,
+              user.addresses[0].pinCode,
+              user.addresses[0].country
+            ].filter(Boolean).join(', '))
+          : 'Not provided';
+        content.innerHTML = `
+          <p><strong>Name:</strong> ${safeName}</p>
+          <p><strong>Email:</strong> ${safeEmail}</p>
+          <p><strong>Phone:</strong> ${safePhone}</p>
+          <p><strong>Address:</strong> ${safeAddress}</p>
+        `;
+      } else {
+        content.innerHTML = `<p>Error loading profile. Please try again or log in.</p>`;
+      }
+    }
+
+    // Toggle profile dropdown
+    let profileVisible = false;
+    async function toggleProfile() {
+      const dropdown = document.getElementById('profileDropdown');
+      if (!dropdown) return;
+      // Check login by calling profile API
+      const user = await fetchUserProfile();
+      if (!user) {
+        document.getElementById('loginModal').style.display = 'flex';
+        return;
+      }
+      profileVisible = !profileVisible;
+      dropdown.classList.toggle('show', profileVisible);
+      dropdown.style.display = profileVisible ? 'flex' : 'none';
+      if (profileVisible) await renderProfileDropdown();
+    }
+
+    // Logout function
+    async function logout() {
+      try {
+        await fetch('/api/users/logout', { method: 'POST', credentials: 'include' });
+      } catch (e) {}
       profileVisible = false;
       const dropdown = document.getElementById('profileDropdown');
       if (dropdown) dropdown.classList.remove('show');
-      fetch('/api/users/logout', { method: 'POST', credentials: 'include' })
-        .then(() => {
-          window.location.href = '/login';
-        })
-        .catch(() => {
-          window.location.href = '/login';
-        });
+      window.location.href = '/login';
+    }
+
+    // Close modal
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
     }
 
     // Hero Slider
@@ -1524,12 +1641,18 @@
       const dropdown = document.getElementById('profileDropdown');
       if (dropdown && dropdown.classList.contains('show') && !dropdown.contains(e.target) && !e.target.closest('.profile-icon-btn')) {
         dropdown.classList.remove('show');
+        dropdown.style.display = 'none';
         profileVisible = false;
       }
       const modal = document.getElementById('loginModal');
       if (modal && modal.style.display === 'flex' && !modal.querySelector('.modal-content').contains(e.target)) {
         modal.style.display = 'none';
       }
+    });
+
+    // On page load, if logged in, render profile dropdown (optional)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Optionally, prefetch profile data if you want
     });
   </script>
 </body>

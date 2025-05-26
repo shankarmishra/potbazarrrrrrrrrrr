@@ -484,6 +484,55 @@ export const productController = {
         user: null
       });
     }
+  },
+
+  // Add a new product (admin)
+  addProduct: async (req, res) => {
+    try {
+      const { name, price, stock, description, category, subcategory } = req.body;
+      const categories = await Category.find().lean();
+      const products = await Product.find().populate('category').populate('subcategory').lean();
+
+      // Validate input (reuse your helper)
+      const validationErrors = validateProductInput(req.body, req.files);
+      if (validationErrors) {
+        return res.render('admin/addProduct', {
+          categories,
+          products,
+          error: validationErrors.join(', '),
+          success: null,
+          editProduct: null
+        });
+      }
+
+      // Process images
+      const images = req.files.map(file => '/uploads/product_images/' + file.filename);
+
+      const product = new Product({
+        name,
+        images,
+        price: parseFloat(price),
+        stock: parseInt(stock),
+        description,
+        category,
+        subcategory
+      });
+
+      await product.save();
+
+      res.redirect('/admin/products?success=Product added successfully');
+    } catch (error) {
+      console.error('Error adding product:', error);
+      const categories = await Category.find().lean();
+      const products = await Product.find().populate('category').populate('subcategory').lean();
+      res.render('admin/addProduct', {
+        categories,
+        products,
+        error: 'Failed to add product. Please try again.',
+        success: null,
+        editProduct: null
+      });
+    }
   }
 };
 
@@ -497,7 +546,8 @@ export const {
   editProduct,
   deleteProduct,
   getAdminProducts,
-  showHomePage
+  showHomePage,
+  addProduct
 } = productController;
 
 export default productController;

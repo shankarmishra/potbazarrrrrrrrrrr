@@ -1,7 +1,8 @@
 import express from 'express';
-import { getProducts, getProductDetails, submitReview } from '../controllers/productController.js';
+import { getProducts, getProductDetails, submitReview, addProduct } from '../controllers/productController.js';
 import authMiddleware from '../Middleware/userMiddleware.js'; // Token-based
 import Product from '../models/productModels.js';
+
 
 const router = express.Router();
 
@@ -33,6 +34,8 @@ router.get('/product/stock/:id', async (req, res) => {
 
 // Submit review (JWT/cookie protected)
 router.post('/submit-review', authMiddleware, submitReview);
+
+
 
 /** ---------- 404 Fallback for Invalid Product Routes ---------- **/
 router.use((req, res) => {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PLANTO - Home</title>
+  <title>POTBAZAR - Home</title>
   <link href="https://fonts.googleapis.com/css2?family=Arial:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
   <style>
@@ -1433,9 +1433,9 @@
         type="text"
         placeholder="Search products..."
         class="search-bar"
-        onkeyup="debounce(function(){ searchProducts(this.value); }, 300).call(this)"
+        onkeyup="debouncedSearch(event)"
         aria-label="Search products"
-      >
+      />
       <button class="cart-icon-btn" onclick="goToCart()" aria-label="View Cart">🛒</button>
       <button class="profile-icon-btn" onclick="toggleProfile()" aria-label="Profile">👤</button>
     </div>
@@ -1542,8 +1542,8 @@
     </div>
     <div class="hero-right">
       <div class="hero-slider">
-        <img src="/static/slide1.png" alt="Garden Tools" class="slide active" loading="lazy">
-        <img src="/static/slide2.png" alt="Planting Hands" class="slide" loading="lazy">
+        <img src="/static/slide1.png" alt="Garden Tools" class="slide active" loading="lazy" onerror="if(!this._defaulted){this._defaulted=true;this.src='/images/default-image.jpg'}">
+        <img src="/static/slide2.png" alt="Planting Hands" class="slide" loading="lazy" onerror="if(!this._defaulted){this._defaulted=true;this.src='/images/default-image.jpg'}">
         <div class="hero-nav">
           <div class="hero-nav-dot active" onclick="goToHeroSlide(0)"></div>
           <div class="hero-nav-dot" onclick="goToHeroSlide(1)"></div>
@@ -1582,20 +1582,20 @@
 
   <!-- Category Sections -->
   <% 
-    const maxProducts = 16; 
+    const maxProducts = 8; 
   %>
   <% categories.forEach(category => { %>
     <section class="category" id="cat-<%= category._id %>">
       <h2><%= category.name %></h2>
       <% if (category.products && category.products.length > 0) { %>
         <div class="category-box">
-          <% category.products.slice(0, maxProducts).forEach((product, idx) => { %>
-            <div class="product-item card <%= idx >= 8 ? 'mobile-hidden' : '' %>">
+          <% category.products.slice(0, maxProducts).forEach((product) => { %>
+            <div class="product-item card">
               <div class="product-images">
                 <a href="/api/products/productdetails?id=<%= product._id %>">
                   <div class="product-slider">
                     <% product.images.forEach((image, index) => { %>
-                      <img src="<%= image %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
+                      <img src="<%= image %>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="if(!this._defaulted){this._defaulted=true;this.src='/images/default-image.jpg'}">
                     <% }) %>
                   </div>
                 </a>
@@ -1626,8 +1626,6 @@
         </div>
         <% if (category.products.length > maxProducts) { %>
           <button class="view-more-btn" onclick="window.location.href='/api/products/products?category=<%= encodeURIComponent(category.name) %>'" aria-label="View more products in <%= category.name %>">View More</button>
-        <% } else if (category.products.length > 8) { %>
-          <button class="view-more-btn mobile-only" onclick="showAllProducts(this)" aria-label="Show all products">View More</button>
         <% } %>
       <% } else { %>
         <p style="text-align: center; color: var(--secondary-text-color);">No products available in this category.</p>
@@ -1656,7 +1654,7 @@
             <a href="/api/products/productdetails?id=<%= product._id %>">
               <div class="product-slider">
                 <% product.images.forEach((image, index) => { %>
-                  <img src="<%= image%>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy">
+                  <img src="<%= image%>" alt="<%= product.name %> Image <%= index + 1 %>" class="<%= index === 0 ? 'active' : '' %>" loading="lazy" onerror="if(!this._defaulted){this._defaulted=true;this.src='/images/default-image.jpg'}">
                 <% }) %>
               </div>
             </a>
@@ -1999,13 +1997,34 @@
     // SEARCH BAR: Filter products by name (client-side)
     function searchProducts(query) {
       query = query.trim().toLowerCase();
-      document.querySelectorAll('.all-products-grid .product-item').forEach(card => {
-        const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
-        card.style.display = name.includes(query) ? '' : 'none';
-      });
-      document.querySelectorAll('.category-box .product-item').forEach(card => {
-        const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
-        card.style.display = name.includes(query) ? '' : 'none';
+
+      // --- All Products Section ---
+      const allGrid = document.querySelector('.all-products-grid');
+      let allMatchCount = 0;
+      if (allGrid) {
+        allGrid.querySelectorAll('.product-item').forEach(card => {
+          const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+          const match = name.includes(query);
+          card.style.display = match ? '' : 'none';
+          if (match) allMatchCount++;
+        });
+        allGrid.style.display = (query && allMatchCount === 0) ? 'none' : '';
+      }
+
+      // --- Each Category Section ---
+      document.querySelectorAll('.category').forEach(section => {
+        const box = section.querySelector('.category-box');
+        if (!box) return;
+        let matchCount = 0;
+        box.querySelectorAll('.product-item').forEach(card => {
+          const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+          const match = name.includes(query);
+          card.style.display = match ? '' : 'none';
+          if (match) matchCount++;
+        });
+        box.style.display = (query && matchCount === 0) ? 'none' : '';
+        // Optionally hide the whole section if no matches
+        section.style.display = (query && matchCount === 0) ? 'none' : '';
       });
     }
 
@@ -2125,6 +2144,10 @@
       hiddenProducts.forEach(product => product.classList.remove('mobile-hidden'));
       button.style.display = 'none';
     }
+
+    const debouncedSearch = debounce(function(e) {
+      searchProducts(e.target.value);
+    }, 300);
   </script>
 </body>
 </html>

@@ -878,6 +878,48 @@
       font-size: 24px;
     }
 
+    /* Product Slider */
+    .product-slider-main {
+      position: relative;
+      width: 60%;           /* Decrease width */
+      min-width: 220px;
+      max-width: 350px;
+      height: 420px;        /* Increase height */
+      overflow: hidden;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      background: #f7fafc;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .product-slider-main img {
+      width: 100%;
+      height: 420px;        /* Match increased height */
+      object-fit: cover;
+      border-radius: 8px;
+      display: none;
+      transition: opacity 0.3s;
+    }
+    .product-slider-main img.active {
+      display: block;
+    }
+    .slider-nav-btn-main {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(0,0,0,0.3);
+      color: #fff;
+      border: none;
+      font-size: 2rem;
+      padding: 4px 12px;
+      cursor: pointer;
+      border-radius: 50%;
+      z-index: 2;
+      user-select: none;
+    }
+    .slider-nav-btn-main.left { left: 10px; }
+    .slider-nav-btn_main.right { right: 10px; }
+
     /* Responsive Design */
     @media (max-width: 768px) {
       .navbar {
@@ -995,7 +1037,15 @@
       }
 
       .product-image img {
-        height: 150px;
+        width: 100%;
+        height: auto !important;
+        max-height: 60vw;
+        min-height: 120px;
+        object-fit: contain;
+        border-radius: 8px;
+        background: #f7fafc;
+        display: block;
+        margin: 0 auto;
       }
 
       .product-info h1 {
@@ -1082,6 +1132,42 @@
       .recommended-products .product-item img {
         height: 110px;
       }
+    }
+
+    /* Zoom Modal */
+    #imageZoomModal {
+      display: none;
+      position: fixed;
+      z-index: 1001;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    #imageZoomModal.show {
+      display: flex !important;
+    }
+
+    #zoomedImage {
+      max-width: 90vw;
+      max-height: 90vh;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+      background: #fff;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 2rem;
+      cursor: pointer;
+      color: #fff;
+      z-index: 2;
     }
   </style>
 </head>
@@ -1209,18 +1295,17 @@
     <!-- Product Details Section -->
     <div class="product-details">
       <div class="product-image">
-        <img src="<%= product.images[0] || '/images/default-image.jpg' %>" alt="<%= product.name %>" id="productImage" onerror="this.src='https://source.unsplash.com/400x300/?plant'" loading="lazy">
+        <img src="<%= product.images[0] %>" alt="<%= product.name %>" id="productImage" loading="lazy" style="cursor:zoom-in;" onclick="openImageZoom(this.src)">
       </div>
       <div class="product-info">
         <h1 id="productTitle"><%= product.name %></h1>
-        <p id="productDescription" class="product-description">
-          <%= product.description.split(' ').slice(0, 50).join(' ') %>
-          <% if (product.description.split(' ').length > 50) { %>
-            <span id="dots">...</span>
-            <span id="more" style="display:none;"><%= product.description.split(' ').slice(50).join(' ') %></span>
-            <button id="viewMoreBtn" class="view-more-desc">View More</button>
-          <% } %>
-        </p>
+        <p id="productDescription" class="product-description" style="white-space:pre-line;">
+  <%=
+    product.description
+      ? product.description
+      : ''
+  %>
+</p>
         <p class="product-price">₹<span id="productPrice"><%= product.price.toFixed(2) %></span></p>
         <p class="product-stock <%= product.stock === 0 ? 'stock-red' : 'stock-green' %>">
           <%= product.stock === 0 ? 'Out of Stock' : `In Stock: ${product.stock}` %>
@@ -1244,6 +1329,19 @@
       </div>
     </div>
 
+    <!-- Show all product images as thumbnails below the main image -->
+    <div class="product-thumbnails" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-start;margin:16px 0 32px 0;">
+      <% (product.images || []).forEach(function(img, idx) { %>
+        <img
+          src="<%= img %>"
+          alt="Product Image <%= idx+1 %>"
+          style="width:60px;height:60px;object-fit:cover;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,0.08);cursor:pointer;border:2px solid #eee;"
+          onclick="document.getElementById('productImage').src=this.src; openImageZoom(this.src);"
+          loading="lazy"
+        >
+      <% }) %>
+    </div>
+
     <!-- Recommended Products Section -->
     <div class="recommended-products">
       <h2>Recommended Products</h2>
@@ -1251,7 +1349,7 @@
         <% recommendedProducts.slice(0, 8).forEach(related => { %>
           <div class="product-item">
             <a href="/api/products/productdetails?id=<%= related._id %>">
-              <img src="<%= related.images[0] || '/images/default-image.jpg' %>" alt="<%= related.name %>" onerror="this.src='https://source.unsplash.com/200x180/?plant'" loading="lazy">
+              <img src="<%= related.images[0] %>" alt="<%= related.name %>" loading="lazy" onerror="if(!this._defaulted){this._defaulted=true;this.src='/images/default-image.jpg'}">
             </a>
             <h4><%= related.name %></h4>
             <p>₹<%= related.price.toFixed(2) %></p>
@@ -1293,7 +1391,7 @@
             <% if (review.images && review.images.length) { %>
               <div class="review-images">
                 <% review.images.forEach(img => { %>
-                  <img src="<%= img %>" alt="Review Image" onerror="this.src='https://source.unsplash.com/48x48/?review'" loading="lazy">
+                  <img src="<%= img %>" alt="Review Image"  loading="lazy" onerror="this.src='/images/default-image.jpg'">
                 <% }) %>
               </div>
             <% } %>
@@ -1353,6 +1451,12 @@
   <!-- Sticky Cart Icon -->
   <div class="sticky-cart" onclick="goToCart()"></div>
 
+  <!-- Zoom Modal -->
+  <div id="imageZoomModal" class="modal" style="display:none;align-items:center;justify-content:center;">
+    <span class="close-btn" onclick="closeImageZoom()" aria-label="Close Zoom" style="position:absolute;top:20px;right:30px;font-size:2rem;cursor:pointer;color:#fff;z-index:2;">&times;</span>
+    <img id="zoomedImage" src="" alt="Zoomed Product Image" style="max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.4);background:#fff;">
+  </div>
+
   <script>
     const API_BASE_URL = 'http://localhost:3000';
     let profileVisible = false;
@@ -1370,8 +1474,14 @@
       };
     }
 
-    function searchProducts(searchTerm) {
-      // Placeholder for search functionality
+    function searchProducts(query) {
+      query = query.trim().toLowerCase();
+
+      // Filter recommended products by name
+      document.querySelectorAll('.recommended-products .product-item').forEach(card => {
+        const name = card.querySelector('h4')?.textContent?.toLowerCase() || '';
+        card.style.display = name.includes(query) ? '' : 'none';
+      });
     }
 
     async function apiRequest(method, url, data, token) {
@@ -1676,8 +1786,8 @@
       const btn = document.getElementById('viewMoreBtn');
       if (btn) {
         btn.addEventListener('click', function() {
-          document.getElementById('dots').style.display = 'none';
-          document.getElementById('more').style.display = 'inline';
+          document.getElementById('descDots').style.display = 'none';
+          document.getElementById('descMore').style.display = 'inline';
           btn.style.display = 'none';
         });
       }
@@ -1735,6 +1845,40 @@
 
     document.getElementById('back-to-top').addEventListener('click', function() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // Image Zoom Functionality
+    function openImageZoom(src) {
+      const modal = document.getElementById('imageZoomModal');
+      const zoomed = document.getElementById('zoomedImage');
+      zoomed.src = src;
+      modal.style.display = 'flex';
+      document.body.classList.add('body-no-scroll');
+    }
+
+    function closeImageZoom() {
+      const modal = document.getElementById('imageZoomModal');
+      modal.style.display = 'none';
+      document.body.classList.remove('body-no-scroll');
+    }
+
+    // Optional: Close zoom on clicking outside the image
+    document.addEventListener('click', function(e) {
+      const modal = document.getElementById('imageZoomModal');
+      const zoomed = document.getElementById('zoomedImage');
+      if (modal && modal.style.display === 'flex' && !zoomed.contains(e.target) && !e.target.classList.contains('close-btn')) {
+        closeImageZoom();
+      }
+    });
+  </script>
+
+
+
+</html></body>    // Attach openImageZoom to product images
+    document.querySelectorAll('.product-image img').forEach(img => {
+      img.addEventListener('click', function() {
+        openImageZoom(this.src);
+      });
     });
   </script>
 </body>

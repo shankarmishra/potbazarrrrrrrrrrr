@@ -1,5 +1,16 @@
 import mongoose, { Schema } from 'mongoose';
 
+// Address sub-schema (same as in orderModels.js)
+const AddressSchema = new Schema({
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+    country: { type: String, default: "India", required: true }
+}, { _id: false });
+
 const TransactionSchema = new Schema({
     userId: { 
         type: mongoose.Schema.Types.ObjectId, 
@@ -28,7 +39,7 @@ const TransactionSchema = new Schema({
         required: true 
     },
     address: { 
-        type: String, 
+        type: AddressSchema, // <-- FIXED: now an object, not string
         required: true 
     },
     paymentStatus: { 

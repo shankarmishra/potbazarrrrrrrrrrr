@@ -6,10 +6,13 @@ import {
   logout,
   getProfile,
   editProfile,
-  // verifyPhone,
+  requestPasswordReset,
+  resetPasswordWithOTP,
 } from '../controllers/userControllers.js';
 
 import authMiddleware from '../Middleware/userMiddleware.js';
+
+// import {getOrdersForUser,} from '../controllers/orderController.js';
 
 const router = express.Router();
 
@@ -30,6 +33,10 @@ const authLimiter = rateLimit({
 // Register & Login
 router.post('/register', authLimiter, register);
 router.post('/login', authLimiter, login);
+
+// Password Reset
+router.post('/request-password-reset', requestPasswordReset);
+router.post('/reset-password', resetPasswordWithOTP);
 
 // Privacy Policy
 router.get('/policy', (req, res) => {
@@ -73,5 +80,6 @@ router.get('/profile-api', (req, res, next) => {
 // Directly add the protected routes to the main router
 router.get('/profile', authMiddleware, getProfile);
 router.put('/profile', authMiddleware, editProfile);
+// router.get('/orders', authMiddleware, getOrdersForUser);
 
 export default router;

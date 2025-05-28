@@ -2,8 +2,6 @@ import express from 'express';
 import {
   adminLogin,
   adminRegister,
-  adminForgotPassword,
-  adminResetPassword,
   getAdminDashboard,
   getAdminProducts,
   getAdminProductEdit,
@@ -11,7 +9,9 @@ import {
   getAdminUsers,
   createCategory,
   adminLogout,
-  createSubcategory // <-- Add this import
+  createSubcategory,
+  adminRequestPasswordReset,      // <-- Add this
+  adminResetPasswordWithOTP       // <-- Add this
 } from '../controllers/adminController.js';
 import {
   createProduct,
@@ -32,9 +32,10 @@ router.post('/login', adminLogin);
 router.get('/register', (req, res) => res.render('admin/adminregister', { error: null, success: null }));
 router.post('/register', adminRegister);
 router.get('/forgot-password', (req, res) => res.render('admin/adminforgotpassword', { error: null, success: null }));
-router.post('/forgot-password', adminForgotPassword);
-router.get('/reset-password', (req, res) => res.render('admin/adminresetpassword', { error: null, success: null }));
-router.post('/reset-password', adminResetPassword);
+
+// Admin OTP-based password reset API (for AJAX frontend)
+router.post('/request-password-reset', adminRequestPasswordReset);
+router.post('/reset-password', adminResetPasswordWithOTP);
 
 // Protected Admin Routes
 router.get('/dashboard', verifyAdmin, getAdminDashboard);

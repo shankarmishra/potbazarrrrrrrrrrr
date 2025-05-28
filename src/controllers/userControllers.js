@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import dotenv from 'dotenv';
 import validator from 'validator';
 import crypto from 'crypto';
+import nodemailer from 'nodemailer';
 
 dotenv.config();
 
@@ -160,7 +161,11 @@ const login = async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, // <-- include role
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: '7d' }
+    );
     res.cookie('token', token, {
       httpOnly: true,
       sameSite: 'strict',
@@ -259,7 +264,7 @@ const logout = async (req, res) => {
 // Get Profile
 const getProfile = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id; // <-- FIXED: use _id
     if (!userId) {
       console.error('No userId in req.user:', req.user);
       return res.status(401).json({
@@ -293,7 +298,7 @@ const getProfile = async (req, res) => {
 // Edit Profile
 const editProfile = async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?._id; // <-- FIXED: use _id
     if (!userId) {
       return res.status(401).json({
         success: false,
@@ -366,11 +371,74 @@ const editProfile = async (req, res) => {
   }
 };
 
+// Helper: Generate 6-digit OTP
+const generateOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Helper: Send OTP email
+const sendOTPEmail = async (email, otp) => {
+  // Configure your transporter (use your SMTP credentials)
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER, // set in .env
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Your OTP for Password Reset',
+    text: `Your OTP for password reset is: ${otp}`
+  });
+};
+
+// Request OTP for password reset
+const requestPasswordReset = async (req, res) => {
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
+
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+  const otp = generateOTP();
+  user.resetToken = otp;
+  user.resetTokenExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+  await user.save();
+
+  await sendOTPEmail(email, otp);
+
+  return res.json({ success: true, message: 'OTP sent to email' });
+};
+
+// Verify OTP and reset password
+const resetPasswordWithOTP = async (req, res) => {
+  const { email, otp, newPassword, confirmPassword } = req.body;
+  if (!email || !otp || !newPassword || !confirmPassword)
+    return res.status(400).json({ success: false, message: 'All fields are required' });
+
+  if (newPassword !== confirmPassword)
+    return res.status(400).json({ success: false, message: 'Passwords do not match' });
+
+  const user = await User.findOne({ email, resetToken: otp, resetTokenExpires: { $gt: Date.now() } });
+  if (!user) return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+
+  user.password = await bcrypt.hash(newPassword, 12);
+  user.resetToken = undefined;
+  user.resetTokenExpires = undefined;
+  await user.save();
+
+  return res.json({ success: true, message: 'Password reset successful' });
+};
+
+// --- Export these new controllers ---
 export {
   register,
   login,
   logout,
   refreshTokenController as refreshToken,
   getProfile,
-  editProfile
+  editProfile,
+  requestPasswordReset,
+  resetPasswordWithOTP
 };

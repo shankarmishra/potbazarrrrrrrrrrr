@@ -12,7 +12,22 @@ const ItemSchema = new Schema({
         type: Number,
         required: true,
     },
-});
+    price: {
+        type: Number,
+        required: true,
+    }
+}, { _id: false });
+
+// Address schema for full details
+const AddressSchema = new Schema({
+    name: { type: String, required: true },
+    phone: { type: String, required: true },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    state: { type: String, required: true },
+    pincode: { type: String, required: true },
+    country: { type: String, default: "India", required: true }
+}, { _id: false });
 
 const orderSchema = new Schema({
     user: { 
@@ -24,13 +39,10 @@ const orderSchema = new Schema({
         type: Date,
     },
     address: { 
-        type: String,
+        type: AddressSchema,
         required: true,
     },
-    items: {
-        type: [ItemSchema],
-        required: true,
-    },
+    items: [ItemSchema], // <-- YAHAN SIRF ItemSchema ka array likho
     status: { 
         type: String,
         enum: [
@@ -43,6 +55,10 @@ const orderSchema = new Schema({
         default: 'Order Placed',
         required: true,
     },
+    totalAmount: {
+        type: Number,
+        required: false
+    }
 }, { timestamps: true });
 
 const Order = mongoose.model('Order', orderSchema);

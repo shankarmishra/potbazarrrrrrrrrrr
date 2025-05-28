@@ -83,6 +83,14 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
     addresses: [addressSchema],
+    resetToken: {
+      type: String,
+      select: false,
+    },
+    resetTokenExpires: {
+      type: Date,
+      select: false,
+    },
   },
   {
     timestamps: true,

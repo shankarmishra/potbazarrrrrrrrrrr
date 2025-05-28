@@ -636,37 +636,8 @@
   <!-- Orders Section -->
   <section class="orders-section">
     <h1>My Orders</h1>
-    <% if (orders?.length) { %>
-      <div class="orders-list" role="list">
-        <% orders.forEach(order => { %>
-          <div class="order-card" role="listitem">
-            <h3>Order #<%= order._id %></h3>
-            <p><strong>Date:</strong> <%= new Date(order.createdAt).toLocaleDateString() %></p>
-            <p><strong>Status:</strong> <%= order.status || 'Pending' %></p>
-            <p><strong>Total:</strong> ₹<%= order.total?.toFixed(2) || '0.00' %></p>
-            <div class="order-items">
-              <% order.items?.forEach(item => { %>
-                <div class="order-item">
-                  <% if (item.product?.images?.[0]) { %>
-                    <img src="<%= item.product.images[0] %>" alt="<%= item.product?.name || 'Product' %>" loading="lazy">
-                  <% } else { %>
-                    <!-- Optionally, show a static placeholder or nothing -->
-                    <!-- <img src="/static/cart-icon.png" alt="No image" loading="lazy"> -->
-                  <% } %>
-                  <div class="order-item-details">
-                    <p><strong><%= item.product?.name || 'Unknown Product' %></strong></p>
-                    <p>Quantity: <%= item.quantity %></p>
-                    <p>Price: ₹<%= item.price?.toFixed(2) || '0.00' %></p>
-                  </div>
-                </div>
-              <% }) %>
-            </div>
-          </div>
-        <% }) %>
-      </div>
-    <% } else { %>
-      <p class="no-orders">No orders found.</p>
-    <% } %>
+    <div id="ordersContainer"></div>
+    <p id="noOrdersMsg" class="no-orders" style="display:none;">No orders found.</p>
   </section>
 
   <!-- Footer -->
@@ -983,7 +954,67 @@
       if (isUserLoggedIn()) {
         renderProfileDropdown();
       }
+      fetchAndRenderOrders();
     });
+
+    async function fetchAndRenderOrders() {
+      const container = document.getElementById('ordersContainer');
+      const noOrdersMsg = document.getElementById('noOrdersMsg');
+      container.innerHTML = '<div class="spinner"></div>';
+      noOrdersMsg.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/orders', { credentials: 'include' });
+        const data = await res.json();
+        if (data.success && data.orders.length) {
+          container.innerHTML = data.orders.map(order => renderOrderCard(order)).join('');
+        } else {
+          container.innerHTML = '';
+          noOrdersMsg.style.display = '';
+        }
+      } catch (err) {
+        container.innerHTML = '';
+        noOrdersMsg.textContent = 'Failed to load orders.';
+        noOrdersMsg.style.display = '';
+        console.error('Fetch error:', err);
+      }
+    }
+
+    function renderOrderCard(order) {
+      return `
+        <div class="order-card" role="listitem">
+          <h3>Order #${order._id}</h3>
+          <p><strong>Date:</strong> ${new Date(order.createdAt || Date.now()).toLocaleDateString()}</p>
+          <p><strong>Delivery Date:</strong> ${order.deliveryDate ? new Date(order.deliveryDate).toLocaleDateString() : 'Processing'}</p>
+          <p><strong>Status:</strong> ${order.status || 'Pending'}</p>
+          <p><strong>Total:</strong> ₹${(order.totalAmount || order.total || 0).toFixed(2)}</p>
+          ${order.address ? `
+            <div style="margin-bottom: 0.5rem;">
+              <strong>Delivery Address:</strong>
+              <div style="font-size: 0.97em; color: #444;">
+                ${order.address.name}, ${order.address.phone}<br>
+                ${order.address.street}, ${order.address.city}, ${order.address.state}<br>
+                Pin: ${order.address.pincode}, ${order.address.country}
+              </div>
+            </div>
+          ` : ''}
+          <div class="order-items">
+            ${(order.items || []).map(item => `
+              <div class="order-item">
+                ${item.product && item.product.images && item.product.images[0] ? `
+                  <img src="${item.product.images[0]}" alt="${item.product.name || 'Product'}" loading="lazy">
+                ` : ''}
+                <div class="order-item-details">
+                  <p><strong>${item.product && item.product.name ? item.product.name : (typeof item.product === 'string' ? item.product : 'No Name')}</strong></p>
+                  <p>Quantity: ${item.quantity}</p>
+                  <p>Price: ₹${(item.price || 0).toFixed(2)}</p>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
   </script>
 </body>
 </html>

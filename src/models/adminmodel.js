@@ -12,16 +12,25 @@ const adminSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    required: true, // Ensure phone is required
+    required: true,
   },
   address: {
     type: String,
-    required: true, // Ensure address is required
+    required: true,
   },
   role: {
     type: String,
     enum: ['admin'],
     default: 'admin',
+  },
+  // Add these fields for OTP-based password reset
+  resetToken: {
+    type: String,
+    select: false,
+  },
+  resetTokenExpires: {
+    type: Date,
+    select: false,
   },
 });
 

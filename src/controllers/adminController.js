@@ -7,8 +7,31 @@ import Admin from '../models/adminmodel.js';
 import Category from '../models/categoryModels.js';
 import User from '../models/userModels.js';
 import Subcategory from '../models/Subcategorymodel.js'; // Import at the top
+import nodemailer from 'nodemailer'; // Make sure this is at the top
+import crypto from 'crypto'; // For OTP generation if not already imported
 
 dotenv.config();
+
+// Helper: Generate 6-digit OTP
+const generateAdminOTP = () => Math.floor(100000 + Math.random() * 900000).toString();
+
+// Helper: Send OTP email to admin
+const sendAdminOTPEmail = async (email, otp) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
+    }
+  });
+
+  await transporter.sendMail({
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Admin Password Reset OTP',
+    text: `Your OTP for admin password reset is: ${otp}`
+  });
+};
 
 // Admin Login
 export const adminLogin = async (req, res) => {
@@ -92,60 +115,52 @@ export const adminRegister = async (req, res) => {
 };
 
 // Admin Forgot Password
-export const adminForgotPassword = async (req, res) => {
+// 1. Request OTP for admin password reset
+export const adminRequestPasswordReset = async (req, res) => {
   const { email } = req.body;
-
   try {
     const admin = await Admin.findOne({ email: email.toLowerCase() });
     if (!admin) {
-      return res.status(404).render('admin/adminforgotpassword', {
-        error: 'Admin not found',
-        success: null,
-      });
+      return res.status(404).json({ success: false, message: 'Admin not found' });
     }
-
-    console.log(`📧 Reset link sent to: ${email}`);
-    res.render('admin/adminforgotpassword', {
-      success: 'Reset link sent to your email.',
-      error: null,
-    });
+    const otp = generateAdminOTP();
+    admin.resetToken = otp;
+    admin.resetTokenExpires = Date.now() + 10 * 60 * 1000; // 10 min
+    await admin.save();
+    await sendAdminOTPEmail(email, otp);
+    return res.json({ success: true, message: 'OTP sent to admin email' });
   } catch (error) {
-    console.error('❌ Forgot Password Error:', error);
-    res.status(500).render('admin/adminforgotpassword', {
-      error: 'Server error during forgot password',
-      success: null,
-    });
+    console.error('❌ Admin OTP Error:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
-// Admin Reset Password
-export const adminResetPassword = async (req, res) => {
-  const { email, newPassword } = req.body;
+// 2. Verify OTP and reset admin password
+export const adminResetPasswordWithOTP = async (req, res) => {
+  const { email, otp, newPassword, confirmPassword } = req.body;
+  if (!email || !otp || !newPassword || !confirmPassword)
+    return res.status(400).json({ success: false, message: 'All fields are required' });
+
+  if (newPassword !== confirmPassword)
+    return res.status(400).json({ success: false, message: 'Passwords do not match' });
 
   try {
-    const admin = await Admin.findOne({ email: email.toLowerCase() });
+    const admin = await Admin.findOne({
+      email: email.toLowerCase(),
+      resetToken: otp,
+      resetTokenExpires: { $gt: Date.now() }
+    });
     if (!admin) {
-      return res.status(404).render('admin/adminresetpassword', {
-        error: 'Admin not found',
-        email,
-        success: null,
-      });
+      return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
     }
-
     admin.password = await bcrypt.hash(newPassword, 10);
+    admin.resetToken = undefined;
+    admin.resetTokenExpires = undefined;
     await admin.save();
-
-    res.render('admin/adminlogin', {
-      success: 'Password reset. Please log in.',
-      error: null,
-    });
+    return res.json({ success: true, message: 'Password reset successful' });
   } catch (error) {
-    console.error('❌ Reset Password Error:', error);
-    res.status(500).render('admin/adminresetpassword', {
-      error: 'Server error during password reset',
-      email,
-      success: null,
-    });
+    console.error('❌ Admin Reset Password Error:', error);
+    return res.status(500).json({ success: false, message: 'Server error' });
   }
 };
 
@@ -204,11 +219,12 @@ export const getAdminProductEdit = async (req, res) => {
 // Admin Order List
 export const getAdminOrders = async (req, res) => {
   try {
-    const orders = await Order.find();
+    const orders = await Order.find()
+      .populate('user', 'name email')
+      .populate('items.product', 'name images');
     res.render('admin/orderList', {
       isAdmin: true,
-      orders, // your orders array
-      // ...any other variables
+      orders,
     });
   } catch (error) {
     console.error('❌ Orders Fetch Error:', error);

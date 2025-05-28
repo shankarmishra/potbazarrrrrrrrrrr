@@ -5,11 +5,12 @@ import crypto from 'crypto';
 import Transaction from '../models/transactionModels.js';
 import Razorpay from 'razorpay';
 import Product from '../models/productModels.js';
+import Category from '../models/categoryModels.js'; // <-- Import Category model
 
 // Constants
 const DEFAULT_DELIVERY_DAYS = 3;
 const MIN_ORDER_AMOUNT = 1; // 1 INR
-const MAX_ORDER_AMOUNT = 1000000; // 10,000 INR
+const MAX_ORDER_AMOUNT = 1000000; // 10,00,000 INR
 const ORDER_STATUSES = ['Order Placed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 // Initialize Razorpay instance
@@ -159,10 +160,20 @@ const createOrder = asyncHandler(async (req, res) => {
         });
     }
 
-    if (!address || !address.street || !address.city || !address.state || !address.pinCode) {
+    // Address validation: must have all required fields
+    if (
+        !address ||
+        !address.name ||
+        !address.phone ||
+        !address.street ||
+        !address.city ||
+        !address.state ||
+        !address.pincode ||
+        !address.country
+    ) {
         return res.status(400).json({ 
             success: false, 
-            message: "Complete shipping address is required" 
+            message: "Complete shipping address is required (name, phone, street, city, state, pincode, country)" 
         });
     }
 
@@ -195,28 +206,54 @@ const createOrder = asyncHandler(async (req, res) => {
 
         try {
             // Create order
-            const newOrder = await Order.create([{
-                user: userId,
-                address,
+            console.log('Creating order with:', {
+              user: req.user?._id,
+              address,
+              cartItems
+            });
+            const newOrderArr = await Order.create([{
+                user: new mongoose.Types.ObjectId(req.user._id), // <-- FIXED
+                items: cartItems.map(item => ({
+                    product: new mongoose.Types.ObjectId(item.product),
+                    quantity: item.quantity,
+                    price: item.price
+                })),
+                address: {
+                    name: address.name,
+                    phone: address.phone,
+                    street: address.street,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                    country: address.country
+                },
                 deliveryDate: finalDeliveryDate,
+                status: "Order Placed",
+                totalAmount
+            }], { session });
+
+            const newOrder = newOrderArr[0]; // Get the created order object
+
+            // Create transaction record
+            await Transaction.create([{
+                userId: userId,
+                order: newOrder._id,
                 items: cartItems.map(item => ({
                     product: item.product,
                     quantity: item.quantity,
                     price: item.price
                 })),
-                status: "Order Placed",
-                totalAmount
-            }], { session });
-
-            // Create transaction record
-            await Transaction.create([{
-                userId: userId,
-                order: newOrder[0]._id,
-                orderId: razorpayOrderId,
-                paymentId: razorpayPaymentId,
-                status: "completed",
                 totalAmount,
-                address
+                address: {
+                    name: address.name,
+                    phone: address.phone,
+                    street: address.street,
+                    city: address.city,
+                    state: address.state,
+                    pincode: address.pincode,
+                    country: address.country
+                },
+                paymentStatus: "completed"
             }], { session });
 
             // Update product stock
@@ -236,7 +273,7 @@ const createOrder = asyncHandler(async (req, res) => {
                 success: true,
                 message: "Order created successfully",
                 data: {
-                    orderId: newOrder[0]._id,
+                    orderId: newOrder._id,
                     totalAmount,
                     deliveryDate: finalDeliveryDate
                 }
@@ -278,38 +315,39 @@ const getOrderbyUserId = asyncHandler(async (req, res) => {
                 select: "name email",
                 model: "User"
             })
-            .populate({
-                path: "items.product",
-                select: "name price images",
-                model: "Product"
-            })
+            .populate('items.product', 'name')
             .sort({ createdAt: -1 })
             .lean();
 
-        // Format response data
+        // Format response data with full delivery address
         const formattedOrders = orders.map(order => ({
             id: order._id,
             status: order.status,
             createdAt: order.createdAt,
             deliveryDate: order.deliveryDate,
             totalAmount: order.totalAmount,
-            address: order.address,
+            address: order.address ? {
+                name: order.address.name,
+                phone: order.address.phone,
+                street: order.address.street,
+                city: order.address.city,
+                state: order.address.state,
+                pincode: order.address.pincode,
+                country: order.address.country
+            } : null,
             items: order.items.map(item => ({
                 product: {
-                    id: item.product._id,
-                    name: item.product.name,
-                    price: item.product.price,
-                    image: item.product.images?.[0] || null
+                    id: item.product?._id,
+                    name: item.product?.name,
+                    price: item.product?.price,
+                    images: item.product?.images || []
                 },
                 quantity: item.quantity,
                 price: item.price
             }))
         }));
 
-        res.status(200).json({ 
-            success: true, 
-            data: formattedOrders 
-        });
+        res.render('orders', { user, orders: formattedOrders, categories });
 
     } catch (error) {
         console.error('Get orders error:', error);
@@ -321,8 +359,67 @@ const getOrderbyUserId = asyncHandler(async (req, res) => {
     }
 });
 
+// API: Get orders for logged-in user (JSON)
+const getOrdersForUserApi = asyncHandler(async (req, res) => {
+  try {
+    const orders = await Order.find({ user: req.user._id })
+      .populate({
+        path: "items.product",
+        select: "name images price",
+        model: "Product"
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.json({ success: true, orders });
+  } catch (error) {
+    console.error('Error fetching user orders (API):', error);
+    res.status(500).json({ success: false, message: "Failed to load orders" });
+  }
+});
+
+// EJS: Get orders for logged-in user (render page)
+const getOrdersForUser = asyncHandler(async (req, res) => {
+  try {
+    const categories = await Category.find().lean();
+
+    const orders = await Order.find({ user: req.user._id })
+      .populate({
+        path: "items.product",
+        select: "name images price",
+        model: "Product"
+      })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.render('orders', { user: req.user, orders, categories });
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    res.status(500).render('orders', { user: req.user, orders: [], categories: [], error: "Error fetching your orders." });
+  }
+});
+
+// Admin: Get all orders (render page)
+const getAllOrders = asyncHandler(async (req, res) => {
+  try {
+    const categories = await Category.find().lean();
+    const orders = await Order.find()
+      .populate('user', 'name email')
+      .populate('items.product', 'name images');
+    console.log(JSON.stringify(orders[0], null, 2));
+
+    res.render('admin/orderList', { orders, isAdmin: true });
+  } catch (error) {
+    res.status(500).render('admin/orderList', { orders: [], isAdmin: true, categories: [], error: "Failed to retrieve orders." });
+  }
+});
+
+
 export { 
     createTransaction, 
     createOrder, 
-    getOrderbyUserId 
+    getOrderbyUserId,
+    getAllOrders,
+    getOrdersForUser,
+    getOrdersForUserApi
 };

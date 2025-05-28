@@ -16,6 +16,8 @@ import Order from '../models/orderModels.js';
 import User from '../models/userModels.js';
 import jwt from 'jsonwebtoken';
 
+import { getOrdersForUser, getOrdersForUserApi } from '../controllers/orderController.js';
+
 const router = express.Router();
 
 // Helper function to get view data
@@ -45,6 +47,7 @@ router.get('/login', (req, res) =>
   })
 );
 router.get('/register', (req, res) => res.render('register'));
+router.get('/forgot-password', (req, res) => res.render('forgot-password'));
 router.get('/policy', (req, res) =>
   res.render('policy', { currentYear: new Date().getFullYear() })
 );
@@ -71,31 +74,11 @@ router.get('/checkout', authMiddleware, async (req, res) => {
   res.render('checkoutpage', viewData);
 });
 
-router.get('/orders', authMiddleware, async (req, res) => {
-  try {
-    const viewData = await getViewData(req);
-    const orders = await Order.find({ user: req.user._id })
-      .populate('items.product')
-      .sort({ createdAt: -1 })
-      .lean();
+// EJS page for orders
+router.get('/orders', authMiddleware, getOrdersForUser);
 
-    res.render('orders', {
-      ...viewData,
-      orders: orders.map((order) => ({
-        ...order,
-        createdAt: order.createdAt.toLocaleDateString(),
-        deliveryDate: order.deliveryDate?.toLocaleDateString() || 'Processing',
-      })),
-    });
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    const viewData = await getViewData(req);
-    res.render('orders', {
-      ...viewData,
-      error: 'Failed to load orders',
-    });
-  }
-});
+// API for orders (returns JSON)
+router.get('/api/orders', authMiddleware, getOrdersForUserApi);
 
 router.get('/profile', authMiddleware, async (req, res) => {
   const viewData = await getViewData(req);
